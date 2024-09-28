@@ -145,10 +145,17 @@ Generate a roadmap in JSON format, where the JSON is an array and each element c
         
         # Parse the cleaned content as JSON
         roadmap = json.loads(cleaned_content)
-        
+        document_data = {
+            'Goal': goal,
+            'DifficultyLevel': difficulty_level,
+            'Age': age,
+            'Gender': gender,
+            'TimeSpan': time_span,
+            'roadmap': roadmap  # Include the generated roadmap
+        }
         # Store the JSON directly into Firestore
         doc_ref = db.collection('Roadmap').document('map')
-        doc_ref.set({'data': roadmap})  # Store as JSON object
+        doc_ref.set(document_data)
         
         return jsonify({'roadmap': roadmap}), 200
     except json.JSONDecodeError as e:
