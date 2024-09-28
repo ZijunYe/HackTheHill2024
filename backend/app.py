@@ -137,6 +137,7 @@ Generate a roadmap in JSON format, where the JSON is an array and each element c
         }
         )
         # Extract the raw content from the response
+        print(response)
         raw_content = response.choices[0].message.content
         
         # Remove any markdown formatting (if necessary)
@@ -218,7 +219,7 @@ Ensure that the roadmap is well-structured and aligns with the feedback provided
         
         # Extract and process the content from OpenAI's response
         raw_content = response.choices[0].message.content
-        cleaned_content = raw_content.strip('```json').strip('```')
+        cleaned_content = raw_content.strip('```json').strip('```').strip()
         print("\nCLEANED CONTENT")
         print(cleaned_content)
         # Parse the cleaned JSON content
@@ -242,13 +243,13 @@ def delete_message_after_json(input_string):
         return input_string[:index + 1]
     return input_string
 
-@app.route('/regenarate_dataset', methods=['POST'])
-def regenarate_dataset():
+@app.route('/regenerate_dataset', methods=['POST'])
+def regenerate_dataset():
     data = request.get_json()
-    index = data["Index"]
-    feedback = data["Feedback"]
+    index = data.get("Index")
+    feedback = data.get("Feedback")
+    
     try:
-        
         # Check if data is valid
         if not data:
             logger.error("No data provided")
@@ -259,22 +260,30 @@ def regenarate_dataset():
         doc = doc_ref.get()
         logger.info("Document reference: %s", doc_ref)
         existing_data = doc.to_dict().get('data', [])
-        print(existing_data[index-1:] )
-        
-        updated_roadmap = update_roadmap(existing_data, index,feedback)
-        # Print the updated roadmap
-        print("Updated Roadmap:", json.dumps(updated_roadmap, indent=2))
-        # Update the document with the modified data
-        doc_ref.set({'data': updated_roadmap})  
-        #doc_ref.set(data)  
-        #logger.info("Roadmap updated successfully")
-        
 
-        return jsonify({'message': 'Roadmap updated successfully'}), 200
+        if not existing_data:
+            return jsonify({'error': 'Roadmap data not found'}), 404
+
+        # Ensure the index is within bounds
+        if index < 1 or index > len(existing_data):
+            return jsonify({'error': 'Index out of bounds'}), 400
+
+        # Update the roadmap with the feedback
+        updated_roadmap = update_roadmap(existing_data, index, feedback)
+        
+        # Print the updated roadmap (for debugging)
+        print("Updated Roadmap:", json.dumps(updated_roadmap, indent=2))
+
+        # Update the document with the modified data
+        doc_ref.set({'data': updated_roadmap})
+
+        # Return the updated roadmap along with the success message
+        return jsonify({'message': 'Roadmap updated successfully', 'updated_data': updated_roadmap}), 200
 
     except Exception as e:
         logger.error("Error updating roadmap: %s", str(e))
         return jsonify({'error': str(e)}), 500
+
     
 @app.route('/change_dataset', methods=['POST'])
 def change_dataset():
@@ -298,6 +307,7 @@ def change_dataset():
         doc_ref = db.collection('Roadmap').document('map')
         doc = doc_ref.get()
         logger.info("Document reference: %s", doc_ref)
+        logger.info("document: %s", doc)
         existing_data = doc.to_dict().get('data', [])
         existing_data[index-1] = data
         
