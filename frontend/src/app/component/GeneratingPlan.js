@@ -25,7 +25,7 @@ function PuppySelection() {
   const puppies = [
     { id: 1, name: "rabbit", img: "/images/rabbit.gif" },
     { id: 2, name: "doggy", img: "/images/doggy.gif" },
-    { id: 3, name: "cat1", img: "/images/cat1.png" },
+    // { id: 3, name: "cat1", img: "/images/cat1.png" },
   ];
 
   const handlePuppySelect = (id) => {
