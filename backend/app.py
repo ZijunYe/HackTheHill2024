@@ -137,21 +137,23 @@ Generate a roadmap in JSON format, where the JSON is an array and each element c
         }
         )
         # Extract the raw content from the response
-        print(response)
+        # print(response)
         raw_content = response.choices[0].message.content
         
         # Remove any markdown formatting (if necessary)
         cleaned_content = raw_content.strip('```json').strip('```').strip()
-        
         # Parse the cleaned content as JSON
         roadmap = json.loads(cleaned_content)
+        for task in roadmap:
+            task["Status"] = "undone"
+        
         document_data = {
             'Goal': goal,
             'DifficultyLevel': difficulty_level,
             'Age': age,
             'Gender': gender,
             'TimeSpan': time_span,
-            'roadmap': roadmap  # Include the generated roadmap
+            'roadmap': roadmap,  # Include the generated roadmap
         }
         # Store the JSON directly into Firestore
         doc_ref = db.collection('Roadmap').document('map')
@@ -360,7 +362,7 @@ def adjust_subsequent_tasks():
     print("inferred_difficulty:", inferred_difficulty)
     # Extract the tasks that need to be adjusted
     subsequent_tasks = existing_data[task_index + 1:]
-
+    roadmap=""
     # Prepare a prompt to re-generate subsequent tasks
     user_prompt = f"""
 Please adjust the following roadmap to align with the updated task at index {task_index}.
@@ -404,7 +406,7 @@ Generate the adjusted tasks in JSON format, ensuring:
             }
         ],
             temperature=1,
-            max_tokens=1024,
+            max_tokens=2048,
             top_p=1,
             frequency_penalty=0,
             presence_penalty=0,
@@ -412,11 +414,17 @@ Generate the adjusted tasks in JSON format, ensuring:
 
         # Parse the response
         raw_content = response.choices[0].message.content
-        cleaned_content = raw_content.strip('```json').strip('```').strip()
+        cleaned_content = raw_content.replace('```json','').replace('```','')
+        start_idx = cleaned_content.find('[')
+        end_idx = cleaned_content.rfind(']') + 1
+        cleaned_content = cleaned_content[start_idx:end_idx]
+
+        print("Cleaned content:", cleaned_content)
+
+        # Parse the cleaned JSON content
         new_tasks = json.loads(cleaned_content)
-        print(new_tasks)
         # Update the roadmap with the new tasks
-        roadmap = updated_task + new_tasks
+        roadmap = new_tasks
 
     except json.JSONDecodeError as e:
         logger.error(f"JSON decoding error: {str(e)}")
@@ -466,5 +474,42 @@ Provide just the difficulty level.
         inferred_difficulty = 'Medium'  # Default to Medium on error
 
     return inferred_difficulty
+
+@app.route('/update_task_status', methods=['PATCH'])
+def update_task_status():
+    try:
+        # Retrieve the request data
+        data = request.get_json()
+        task_index = data.get('Index')
+
+        if task_index is None:
+            return jsonify({'error': 'Task index is required.'}), 400
+
+        # Retrieve the existing roadmap document
+        doc_ref = db.collection('Roadmap').document('map')
+        doc = doc_ref.get()
+        
+        if not doc.exists:
+            return jsonify({'error': 'Roadmap document not found.'}), 404
+
+        roadmap_data = doc.to_dict().get('roadmap', [])
+
+        # Check if the task index is within the bounds of the roadmap
+        if task_index < 1 or task_index > len(roadmap_data):
+            return jsonify({'error': 'Task index is out of bounds.'}), 400
+
+        # Update the status of the task at the specified index
+        task = roadmap_data[task_index - 1]  # Since the index is 1-based
+        task['Status'] = 'finished'
+
+        # Update the roadmap document in Firestore
+        doc_ref.update({'roadmap': roadmap_data})
+
+        return jsonify({'message': f'Task at index {task_index} updated to finished successfully', 'updated_task': task}), 200
+
+    except Exception as e:
+        logger.error(f"Error updating task status: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
     app.run(debug=True)
