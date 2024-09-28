@@ -11,6 +11,22 @@
 }
 
 
+@keyframes bob {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px); /* Adjust the height of the bob */
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.bobbing {
+  animation: bob 1s ease-in-out infinite; /* Adjust duration and timing as needed */
+}
+
 
 body {
   color: var(--foreground);

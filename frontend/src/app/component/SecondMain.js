@@ -9,6 +9,7 @@ export default function SecondMain({ name, onSubmit }) {
     if (e.key === "Enter") {
       e.preventDefault(); 
       onSubmit(textareaInput); 
+
     }
   };
 
@@ -34,10 +35,37 @@ export default function SecondMain({ name, onSubmit }) {
   return (
     <div className="border-black border-8 rounded-xl grid items-center justify-items-center min-h-screen relative p-8">
       
-      <div className="flex flex-col items-center justify-center animate-moveIn">
-        <div className="font-pixelify text-8xl text-black flex items-center justify-center mb-12 ">
+      <div className="absolute inset-0 z-0">
+      <div className="flex space-x-2">
+      <img
+          src="/images/cloud.gif"
+          width={600}
+          style={{ position: 'absolute', top: '50%', left: '15%', transform: 'translate(-50%, -50%)' }}
+          alt="Cloud"
+        />
+      </div>
+      <div className="flex space-x-2">
+      <img
+          src="/images/cloud.gif"
+          width={600}
+          style={{
+            position: 'absolute',
+            top: '50%',
+            right: '-15%',
+            transform: 'translate(-50%, -50%) scaleX(-1)' // Added scaleX(-1) to flip horizontally
+          }}
+          alt="Cloud"
+        />
+      </div>
+      </div>
+      <div className="flex flex-col items-center justify-center animate-moveIn relative z-10">
+        <div className="font-pixelify text-8xl text-black flex items-center justify-center mb-12">
           <h1>Hello, {name}</h1>
-          <img src="/images/smileChat.png" alt="smile" className="ml-2" />
+          <img
+        src="/images/smileChat.png"
+        alt="smile"
+        className="bobbing ml-2" // Apply the bobbing class
+      />
         </div>
 
         <div className="box bg-white border-black border-8 rounded-md shadow-md px-32 py-8 inline-block text-center relative mt-8">
@@ -56,39 +84,35 @@ export default function SecondMain({ name, onSubmit }) {
         </div>
       </div>
 
-
-
       <div className="absolute bottom-0 w-full flex justify-between px-10">
-      {/* Left side trees */}
-      <div className="flex space-x-2">
-        {Array(leftVisibleTrees)
-          .fill(null)
-          .map((_, index) => (
-            <img
-              key={`left-tree-${index}`}
-              src="/images/Tree.png"
-              alt="Tree"
-              className="w-28 h-auto"
-            />
-          ))}
-      </div>
+        {/* Left side trees */}
+        <div className="flex space-x-2">
+          {Array(leftVisibleTrees)
+            .fill(null)
+            .map((_, index) => (
+              <img
+                key={`left-tree-${index}`}
+                src="/images/Tree.png"
+                alt="Tree"
+                className="w-28 h-auto"
+              />
+            ))}
+        </div>
 
-      {/* Right side trees */}
-      <div className="flex space-x-2">
-        {Array(rightVisibleTrees)
-          .fill(null)
-          .map((_, index) => (
-            <img
-              key={`right-tree-${index}`}
-              src="/images/Tree.png"
-              alt="Tree"
-              className="w-28 h-auto"
-            />
-          ))}
+        {/* Right side trees */}
+        <div className="flex space-x-2">
+          {Array(rightVisibleTrees)
+            .fill(null)
+            .map((_, index) => (
+              <img
+                key={`right-tree-${index}`}
+                src="/images/Tree.png"
+                alt="Tree"
+                className="w-28 h-auto"
+              />
+            ))}
+        </div>
       </div>
-    </div>
-       
     </div>
   );
 }
-
