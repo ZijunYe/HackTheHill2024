@@ -67,7 +67,7 @@ export default function GeneratingPlan({ name }) {
       const fetchedData = null; // Change this to simulate real data or null
       setData(fetchedData); // Set fetched data
       setIsLoading(false); // Set loading to false after fetching
-    }, 2000);
+    }, 60000000);
   }, []);
 
   const handlePuppySelect = (puppyId) => {
@@ -81,9 +81,9 @@ export default function GeneratingPlan({ name }) {
           <h1 className="font-pixelify text-6xl text-black">Hold On</h1>
           <h2 className="font-pixelify text-6xl text-black mt-4">{name}</h2>
           <div className="mt-12">
-            <img src="/images/house.gif" alt="Pixel House" className="w-96 h-96" />
+            <img src="/images/house.gif" alt="Pixel House" className="w-60 h-auto" />
           </div>
-          <p className="font-pixelify text-2xl text-black mt-8">We are generating your Plan~</p>
+          <p className=" text-3xl text-black mt-8">We are generating your Plan~</p>
         </div>
       ) : (
         // Render PuppySelection if data is not null

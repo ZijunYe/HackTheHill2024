@@ -17,6 +17,11 @@ body {
   background: var(--background);
   /* font-family: Arial, Helvetica, sans-serif; */
   font-family: 'Pixelify Sans', sans-serif;
+  /* font-family: var(--font-geist-sans), var(--font-geist-mono), sans-serif; */
+  cursor: url('/images/hand.svg'), auto; 
+}
+.custom-cursor {
+  cursor: url('/images/hand.svg'), auto;
 }
 
 @layer utilities {

@@ -16,26 +16,30 @@ export default function ThirdMain({ name, textareaInput, onSubmit }) {
   };
 
   return (
-    <div className="border-black border-8 rounded-xl grid items-center justify-items-center min-h-screen relative p-8 bg-[#FFF3E6]">
-      <div className="relative mb-44"></div>
-      <div className="font-pixelify text-8xl text-black flex items-center ">
-        <h1>Hello, {name}</h1>
-        <img src="/images/smileChat.png" alt="smile" className="ml-2" />
+    <div className="border-black border-8 rounded-xl grid items-center justify-items-center min-h-screen relative p-8">
+
+    <div className="flex flex-col items-center justify-center">
+    <div className="font-pixelify text-8xl text-black flex flex-col items-center justify-center mb-12">
+        <h1 className="text-center">Sounds Interesting <br /> {name}!</h1>
+        <img src="/images/smileChat.png" alt="smile" className="mt-4" />
       </div>
-      <div className="font-pixelify text-center text-2xl text-black ">
-        {textareaInput}
+
+
+      <div className="font-pixelify text-center text-3xl text-black mb-10">
+        Goal: {textareaInput}
       </div>
+
+
       <div className="relative mb-44">
-        <img src="/images/calendar.png" alt="Calendar Heart" className="mx-auto"/>
-        
-        <div className="box bg-white border-black border-8 rounded-md shadow-md px-44 py-8 inline-block text-center mb-20">
-          <p className="font-pixelify text-lg text-black mb-4">
-            Sounds good! How long do you want to achieve this goal? (Such as
+        {/* <img src="/images/calendar.png" alt="Calendar Heart" className="mx-auto"/> */}
+        <div className="box bg-white border-black border-8 rounded-md shadow-md px-32 py-8 inline-block text-center mb-20">
+          <p className="font-pixelify text-2xl text-black mb-4">
+            How long do you want to achieve this goal? (Such as
             #days, #weeks, #months, etc)
           </p>
 
           <textarea
-            className="text-black text-lg font-pixelify text-center outline-none py-2 px-4 resize-none rounded-md w-full h-20"
+            className="text-black text-2xl font-pixelify text-center outline-none py-2 px-4 resize-none rounded-md w-full h-20"
             placeholder="Enter your goal duration here..."
             value={goalDuration}
             onChange={(e) => setGoalDuration(e.target.value)}
@@ -43,6 +47,9 @@ export default function ThirdMain({ name, textareaInput, onSubmit }) {
           />
         </div>
       </div>
+    </div>
+
+
       <div className="absolute bottom-0 w-full flex justify-between px-10">
          <div className="flex space-x-2">
             {Array(3)
