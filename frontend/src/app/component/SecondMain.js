@@ -17,11 +17,13 @@ export default function SecondMain({ name, onSubmit }) {
     <div className="border-black border-8 rounded-xl grid items-center justify-items-center min-h-screen relative p-8">
   
       <div className="relative">
-        </div>
+      </div>
+      
       <div className="font-pixelify text-8xl text-black flex items-center ">
-          <h1>Hello, {name}</h1>
-          <img src="/images/smileChat.png" alt="smile" className="ml-2" />
-        </div>
+        <h1>Hello, {name}</h1>
+        <img src="/images/smileChat.png" alt="smile" className="ml-2" />
+      </div>
+
       <div className="box bg-white border-black border-8 rounded-md shadow-md px-80 py-8 inline-block text-center relative">
         <img
           src="/images/plantGrowth.png"
@@ -35,7 +37,6 @@ export default function SecondMain({ name, onSubmit }) {
           onChange={handleChange}
           onKeyDown={handleKeyDown} 
         />
-
     </div>
 
 

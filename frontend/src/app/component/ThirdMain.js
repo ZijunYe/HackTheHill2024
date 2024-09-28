@@ -1,50 +1,48 @@
 import { useState } from "react";
 
-export default function ThirdMain({ name, textareaInput }) {
+export default function ThirdMain({ name, textareaInput, onSubmit }) {
   const [goalDuration, setGoalDuration] = useState("");
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
       e.preventDefault(); // Prevent default form submission
       console.log("Goal duration submitted:", goalDuration);
+
+      // Call the onSubmit prop with the goal duration to move to the next step
+      if (goalDuration.trim()) {
+        onSubmit(goalDuration); // Pass goalDuration to parent
+      }
     }
   };
 
   return (
     <div className="border-black border-8 rounded-xl grid items-center justify-items-center min-h-screen relative p-8 bg-[#FFF3E6]">
-
-        <div className="relative mb-44">
-            
-        </div>
+      <div className="relative mb-44"></div>
       <div className="font-pixelify text-8xl text-black flex items-center ">
         <h1>Hello, {name}</h1>
         <img src="/images/smileChat.png" alt="smile" className="ml-2" />
       </div>
       <div className="font-pixelify text-center text-2xl text-black ">
-        {textareaInput} 
+        {textareaInput}
       </div>
       <div className="relative mb-44">
-        <img
-          src="/images/calendar.png"
-          alt="Calendar Heart"
-          className="mx-auto"/>
+        <img src="/images/calendar.png" alt="Calendar Heart" className="mx-auto"/>
         
-         <div className="box bg-white border-black border-8 rounded-md shadow-md px-44 py-8 inline-block text-center mb-20">
-            <p className="font-pixelify text-lg text-black mb-4">
-                Sounds good! How long do you want to achieve this goal? (Such as
-                #days, #weeks, #months, etc)
-            </p>
+        <div className="box bg-white border-black border-8 rounded-md shadow-md px-44 py-8 inline-block text-center mb-20">
+          <p className="font-pixelify text-lg text-black mb-4">
+            Sounds good! How long do you want to achieve this goal? (Such as
+            #days, #weeks, #months, etc)
+          </p>
 
-            <textarea
-                className="text-black text-lg font-pixelify text-center outline-none py-2 px-4 resize-none rounded-md w-full h-20"
-                placeholder="Enter your goal duration here..."
-                value={goalDuration}
-                onChange={(e) => setGoalDuration(e.target.value)}
-                onKeyDown={handleKeyDown} // Handle "Enter" key to submit goal duration
-            />
-            </div>
+          <textarea
+            className="text-black text-lg font-pixelify text-center outline-none py-2 px-4 resize-none rounded-md w-full h-20"
+            placeholder="Enter your goal duration here..."
+            value={goalDuration}
+            onChange={(e) => setGoalDuration(e.target.value)}
+            onKeyDown={handleKeyDown} // Handle "Enter" key to submit goal duration
+          />
+        </div>
       </div>
-
       <div className="absolute bottom-0 w-full flex justify-between px-10">
          <div className="flex space-x-2">
             {Array(3)
@@ -74,9 +72,10 @@ export default function ThirdMain({ name, textareaInput }) {
         </div>
         </div>
 
-      <div className="absolute right-0 top-16">
-        <img src="/images/bird.gif" alt="Bird" />
-      </div>
+
+
+     
     </div>
   );
 }
+
