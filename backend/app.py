@@ -4,7 +4,6 @@ import logging
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from openai import OpenAI
-import openai
 from dotenv import load_dotenv
 
 import firebase_admin
@@ -30,6 +29,7 @@ CORS(app)  # Enable CORS
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+print(os.environ.get("OPENAI_API_KEY"))
 
 # Instantiate OpenAI Client
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"),)
@@ -48,6 +48,7 @@ Please generate a roadmap in JSON format. The JSON should be an array where each
 
 - **Task**: A specific action or activity the user should perform.
 - **Days**: The number of days allocated to complete the task.
+- **Index**: The index of task.
 - **Description**: A detailed explanation of the task and how it contributes to the user's goal.
 - **ResourceLinks**: An array of relevant resource links to assist the user in completing the task.
 
@@ -89,6 +90,7 @@ Generate a roadmap in JSON format, where the JSON is an array and each element c
 
 - **Task**: A specific action or activity I should perform.
 - **Days**: The number of days allocated to complete the task.
+- **Index**: The index of task.
 - **Description**: A detailed explanation of the task and how it contributes to my goal.
 - **ResourceLinks**: An array of relevant resource links to assist me in completing the task.
 
@@ -134,14 +136,19 @@ Generate a roadmap in JSON format, where the JSON is an array and each element c
             "type": "text"
         }
         )
+        # Extract the raw content from the response
         raw_content = response.choices[0].message.content
-        # Step 2: Remove the markdown formatting (```json and ```)
-        cleaned_content = raw_content.strip('```json').strip('```')
-        # print(cleaned_content)
+        
+        # Remove any markdown formatting (if necessary)
+        cleaned_content = raw_content.strip('```json').strip('```').strip()
+        
+        # Parse the cleaned content as JSON
         roadmap = json.loads(cleaned_content)
-        print(roadmap)
+        
+        # Store the JSON directly into Firestore
         doc_ref = db.collection('Roadmap').document('map')
-        doc_ref.set({'data': cleaned_content})
+        doc_ref.set({'data': roadmap})  # Store as JSON object
+        
         return jsonify({'roadmap': roadmap}), 200
     except json.JSONDecodeError as e:
         logger.error(f"JSON decoding error: {str(e)}")
@@ -149,21 +156,25 @@ Generate a roadmap in JSON format, where the JSON is an array and each element c
     except Exception as e:
         logger.error(f"Error: {str(e)}")
         return jsonify({'error': str(e)}), 500
+    
+import json
+import logging
 
-@app.route('/update_roadmap', methods=['POST'])
-def update_roadmap():
+logger = logging.getLogger(__name__)
+
+def update_roadmap(existing_roadmap, index, feedback):
+    # Validate the index
+    if index < 1 or index > len(existing_roadmap):
+        raise ValueError('Invalid index provided.')  # Raise an exception
+
+    # Get feedback and goal from the request
     data = request.get_json()
-    existing_roadmap = data.get('ExistingRoadmap')
     feedback = data.get('Feedback')
     goal = data.get('Goal')
-
-    # Validate inputs
-    if not all([existing_roadmap, feedback, goal]):
-        return jsonify({'error': 'All fields (ExistingRoadmap, Feedback, Goal) are required.'}), 400
-
+    
     logger.info('Updating roadmap for goal: %s based on feedback: %s', goal, feedback)
 
-    # Prepare the user prompt
+    # Prepare the user prompt for OpenAI
     user_prompt = f"""
 The user has an existing roadmap to achieve the goal: **{goal}**.
 Here is the current roadmap:
@@ -177,6 +188,7 @@ Please update the roadmap based on the feedback. Generate the updated roadmap in
 
 - **Task**: A specific action or activity for the updated roadmap.
 - **Days**: The number of days allocated to complete the task.
+- **Index**: The index of task.
 - **Description**: A detailed explanation of the task and how it contributes to the goal.
 - **ResourceLinks**: An array of relevant resource links to assist in completing the task.
 
@@ -203,22 +215,102 @@ Ensure that the roadmap is well-structured and aligns with the feedback provided
             frequency_penalty=0,
             presence_penalty=0
         )
+        
         # Extract and process the content from OpenAI's response
         raw_content = response.choices[0].message.content
-        print(raw_content)
-        # Step 2: Remove the markdown formatting (```json and ```)
         cleaned_content = raw_content.strip('```json').strip('```')
-
+        print("\nCLEANED CONTENT")
+        print(cleaned_content)
         # Parse the cleaned JSON content
-        updated_roadmap = json.loads(cleaned_content)
+        new_roadmap_part = json.loads(cleaned_content)
 
-        return jsonify({'updated_roadmap': updated_roadmap}), 200
+        # Combine the existing roadmap with the new tasks
+        updated_roadmap = existing_roadmap[:index-1] + new_roadmap_part + existing_roadmap[index-1:]
+        print(updated_roadmap)
+        # Return the updated roadmap
+        return updated_roadmap  
     except json.JSONDecodeError as e:
         logger.error(f"JSON decoding error: {str(e)}")
-        return jsonify({'error': 'Failed to parse the OpenAI response as JSON.'}), 500
+        raise ValueError('Failed to parse the OpenAI response as JSON.')  # Raise an exception
     except Exception as e:
         logger.error(f"Error: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+        raise  # Raise the error for handling elsewhere
 
+def delete_message_after_json(input_string):
+    index = input_string.find(']')
+    if index != -1:
+        return input_string[:index + 1]
+    return input_string
+
+@app.route('/regenarate_dataset', methods=['POST'])
+def regenarate_dataset():
+    data = request.get_json()
+    index = data["Index"]
+    feedback = data["Feedback"]
+    try:
+        
+        # Check if data is valid
+        if not data:
+            logger.error("No data provided")
+            return jsonify({'error': 'No data provided'}), 400
+
+        # Retrieve the existing roadmap
+        doc_ref = db.collection('Roadmap').document('map')
+        doc = doc_ref.get()
+        logger.info("Document reference: %s", doc_ref)
+        existing_data = doc.to_dict().get('data', [])
+        print(existing_data[index-1:] )
+        
+        updated_roadmap = update_roadmap(existing_data, index,feedback)
+        # Print the updated roadmap
+        print("Updated Roadmap:", json.dumps(updated_roadmap, indent=2))
+        # Update the document with the modified data
+        doc_ref.set({'data': updated_roadmap})  
+        #doc_ref.set(data)  
+        #logger.info("Roadmap updated successfully")
+        
+
+        return jsonify({'message': 'Roadmap updated successfully'}), 200
+
+    except Exception as e:
+        logger.error("Error updating roadmap: %s", str(e))
+        return jsonify({'error': str(e)}), 500
+    
+@app.route('/change_dataset', methods=['POST'])
+def change_dataset():
+    data = request.get_json()
+    index = data["Index"]
+    print(data["Index"])
+    print("\n")
+
+    
+    try:
+        # Retrieve the JSON data from the request
+        data = request.get_json()
+        logger.info("Received data: %s", data)
+        
+        # Check if data is valid
+        if not data:
+            logger.error("No data provided")
+            return jsonify({'error': 'No data provided'}), 400
+
+        # Retrieve the existing roadmap
+        doc_ref = db.collection('Roadmap').document('map')
+        doc = doc_ref.get()
+        logger.info("Document reference: %s", doc_ref)
+        existing_data = doc.to_dict().get('data', [])
+        existing_data[index-1] = data
+        
+        # Update the document with the modified data
+        doc_ref.set({'data': existing_data})  
+        #doc_ref.set(data)  
+        logger.info("Roadmap updated successfully")
+
+        return jsonify({'message': 'Roadmap updated successfully'}), 200
+
+    except Exception as e:
+        logger.error("Error updating roadmap: %s", str(e))
+        return jsonify({'error': str(e)}), 500
+        
 if __name__ == '__main__':
     app.run(debug=True)
