@@ -15,43 +15,58 @@
   
 
 
-
-import { useState, useEffect } from "react";
+import { useState,useEffect } from "react";
+import Link from 'next/link';
 
 // Puppy selection component
-function PuppySelection({ onPuppySelect }) {
+function PuppySelection() {
+  const [selectedPuppy, setSelectedPuppy] = useState(null);
+
   const puppies = [
-    { id: 1, name: "bear", img: "/images/bear.png" },
-    { id: 2, name: "cow", img: "/images/cow.png" },
+    { id: 1, name: "rabbit", img: "/images/rabbit.gif" },
+    { id: 2, name: "doggy", img: "/images/doggy.gif" },
     { id: 3, name: "cat1", img: "/images/cat1.png" },
-    { id: 4, name: "cat2", img: "/images/cat2.png" },
-    { id: 5, name: "frog", img: "/images/frog.png" },
-    { id: 6, name: "rabbit", img: "/images/rabbit.png" },
-    { id: 7, name: "turtle", img: "/images/turtle.png" },
-    { id: 8, name: "frog2", img: "/images/frog2.png" },
-    { id: 9, name: "robot", img: "/images/robot.png" },
-    { id: 10, name: "bull", img: "/images/bull.png" },
-    { id: 11, name: "pig", img: "/images/pig.png" },
-    { id: 12, name: "bunny", img: "/images/bunny.png" },
   ];
+
+  const handlePuppySelect = (id) => {
+    setSelectedPuppy(id); // Set the selected puppy's ID
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8eee4] animate-moveIn">
-      <h1 className="font-pixelify text-6xl text-black">Pick your Puppy <br/> to accompany your journey!</h1>
+      <h1 className="font-pixelify text-6xl text-black">
+        Pick your Puppy <br /> to accompany your journey!
+      </h1>
       <div className="grid grid-cols-4 gap-6 mt-12">
         {puppies.map((puppy) => (
           <img
             key={puppy.id}
             src={puppy.img}
             alt={puppy.name}
-            className="w-20 h-20 cursor-pointer hover:ring-4 hover:ring-red-400 hover:rounded-md"
-            onClick={() => onPuppySelect(puppy.id)}
+            className={`w-20 h-20 cursor-pointer rounded-md ${
+              selectedPuppy === puppy.id
+                ? 'ring-4 ring-red-400' // Apply red ring if selected
+                : 'hover:ring-4 hover:ring-red-400'
+            }`}
+            onClick={() => handlePuppySelect(puppy.id)}
           />
         ))}
       </div>
-      <button className="mt-12 px-10 py-4 bg-red-600 text-white font-pixelify rounded-full text-3xl">
-        Start Plan
-      </button>
+
+      {selectedPuppy ? (
+        <Link href="/roadmap">
+          <button className="mt-12 px-10 py-4 bg-red-600 text-white font-pixelify rounded-full text-3xl">
+            Start Plan
+          </button>
+        </Link>
+      ) : (
+        <button
+          disabled
+          className="mt-12 px-10 py-4 bg-gray-400 text-white font-pixelify rounded-full text-3xl cursor-not-allowed"
+        >
+          Start Plan
+        </button>
+      )}
     </div>
   );
 }
@@ -77,15 +92,15 @@ export default function GeneratingPlan({ name }) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8eee4]">
       {isLoading ? (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8eee4] animate-moveIn">
-          <h1 className="font-pixelify text-6xl text-black">Hold On</h1>
-          <h2 className="font-pixelify text-6xl text-black mt-4">{name}</h2>
-          <div className="mt-12">
-            <img src="/images/house.gif" alt="Pixel House" className="w-60 h-auto" />
-          </div>
-          <p className="font-mono  text-3xl text-black mt-8">We are generating your Plan~</p>
-          {/* <PuppySelection onPuppySelect={handlePuppySelect} /> */}
-        </div>
+        // <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8eee4] animate-moveIn">
+        //   <h1 className="font-pixelify text-6xl text-black">Hold On</h1>
+        //   <h2 className="font-pixelify text-6xl text-black mt-4">{name}</h2>
+        //   <div className="mt-12">
+        //     <img src="/images/house.gif" alt="Pixel House" className="w-60 h-auto" />
+        //   </div>
+        //   <p className="font-mono  text-3xl text-black mt-8">We are generating your Plan~</p>
+           <PuppySelection onPuppySelect={handlePuppySelect} /> 
+        // </div>
       ) : (
         // Render PuppySelection if data is not null
         data ? (

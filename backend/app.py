@@ -43,7 +43,6 @@ You are an AI assistant for a self-improvement application. Your task is to gene
 - **Age**: The user's age.
 - **Gender**: The user's gender.
 - **TimeSpan**: The total time span available to achieve the goal (in days).
-- **Score**: Set it as user's score.
 
 Please generate a roadmap in JSON format. The JSON should be an array where each element contains the following fields:
 
@@ -62,11 +61,47 @@ Please generate a roadmap in JSON format. The JSON should be an array where each
 - Include reputable and relevant resource links.
 """
 
+# def calculate_points(difficulty_level):
+#     if difficulty_level.lower() == 'easy':
+#         return 1  # Assign low points for easy tasks
+#     elif difficulty_level.lower() == 'medium':
+#         return 4  # Assign medium points for medium tasks
+#     elif difficulty_level.lower() == 'hard':
+#         return 7  # Assign high points for hard tasks
+#     else:
+#         return 0  # Default to 0 points if difficulty is unknown
+
+def calculate_reward_points():
+    try:
+        # Retrieve the existing roadmap document
+        doc_ref = db.collection('Roadmap').document('map')
+        doc = doc_ref.get()
+        
+        # Ensure the document exists
+        if not doc.exists:
+            logger.warning("No roadmap document found to calculate reward points.")
+            return 0  # Return 0 if no document is found
+
+        # Get the roadmap data from the document
+        roadmap_data = doc.to_dict().get('roadmap', [])
+
+        # Calculate reward points by summing up points of finished tasks
+        total_reward_points = sum(task['Points'] for task in roadmap_data if task.get('Status') == 'finished')
+
+        # Store the total reward points in Firestore
+        doc_ref.update({'RewardPoints': total_reward_points})
+        
+        logger.info(f"Total reward points calculated and updated: {total_reward_points}")
+        return total_reward_points
+
+    except Exception as e:
+        logger.error(f"Error calculating reward points: {str(e)}")
+        return 0  # Return 0 in case of any errors
+
 @app.route('/generate_roadmap', methods=['POST'])
 def generate_roadmap():
     data = request.get_json()
     goal = data.get('Goal')
-    score = data.get('Score')
     difficulty_level = data.get('DifficultyLevel')
     age = data.get('Age')
     gender = data.get('Gender')
@@ -85,7 +120,6 @@ Please generate a personalized roadmap to help me achieve my goal.
 - **Goal**: {goal}
 - **DifficultyLevel**: {difficulty_level}
 - **Age**: {age}
-- **Score**: {score}
 - **Gender**: {gender}
 - **TimeSpan**: {time_span}
 
@@ -104,6 +138,8 @@ Generate a roadmap in JSON format, where the JSON is an array and each element c
 - The sum of the days for all tasks should not exceed the provided time span.
 - Provide clear and concise descriptions.
 - Include reputable and relevant resource links.
+
+- Ensure that each task includes a "Points" field on a scale from 0 to 10 along with all the other attributes.
 """
 
     try:
@@ -148,6 +184,11 @@ Generate a roadmap in JSON format, where the JSON is an array and each element c
         # Parse the cleaned content as JSON
         roadmap = json.loads(cleaned_content)
         for task in roadmap:
+            if 'Points' not in task:
+                logger.warning("One of the tasks is missing the Points field. Setting a default value.")
+                task['Points'] = 5  # Default to 5 points if missing
+                
+        for task in roadmap:
             task["Status"] = "undone"
         
         document_data = {
@@ -156,8 +197,8 @@ Generate a roadmap in JSON format, where the JSON is an array and each element c
             'Age': age,
             'Gender': gender,
             'TimeSpan': time_span,
-            'Score': score,
             'roadmap': roadmap,  # Include the generated roadmap
+            'reward points': 0
         }
         # Store the JSON directly into Firestore
         doc_ref = db.collection('Roadmap').document('map')
@@ -339,7 +380,7 @@ def update_roadmap():
                     "content": user_prompt
                 }
             ],
-            temperature=0.7,
+            temperature=1,
             max_tokens=2048,
             top_p=1,
             frequency_penalty=0,
@@ -528,40 +569,12 @@ def update_task_status():
 
         # Update the roadmap document in Firestore
         doc_ref.update({'roadmap': roadmap_data})
-        
-        score = task['Days']
-       # print(score)
-        update_score(score, task_index)
 
         return jsonify({'message': f'Task at index {task_index} updated to finished successfully', 'updated_task': task}), 200
 
     except Exception as e:
         logger.error(f"Error updating task status: {str(e)}")
         return jsonify({'error': str(e)}), 500
-
-
-def update_score(score, task_index):
-    try:
-        # Retrieve the existing roadmap document
-        doc_ref = db.collection('Roadmap').document('map')
-        doc = doc_ref.get()
-
-        if not doc.exists:
-            return jsonify({'error': 'Roadmap document not found.'}), 404
-
-        roadmap_data = doc.to_dict()
-        
-        current_score = roadmap_data.get('Score', task_index-1)  
-        updated_score = int(current_score) + int(score) 
-
-        doc_ref.update({'Score': str(updated_score)})
-
-        return jsonify({'message': 'Score updated successfully', 'updated_score': updated_score}), 200
-
-    except Exception as e:
-        logger.error(f"Error updating score: {str(e)}")
-        return jsonify({'error': str(e)}), 500
-
 
 if __name__ == '__main__':
     app.run(debug=True)
