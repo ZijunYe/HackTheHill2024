@@ -36,15 +36,15 @@ function PuppySelection({ onPuppySelect }) {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8eee4]">
-      <h1 className="font-pixelify text-6xl text-black">Choose Your Puppy</h1>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8eee4] animate-moveIn">
+      <h1 className="font-pixelify text-6xl text-black">Pick your Puppy <br/> to accompany your journey!</h1>
       <div className="grid grid-cols-4 gap-6 mt-12">
         {puppies.map((puppy) => (
           <img
             key={puppy.id}
             src={puppy.img}
             alt={puppy.name}
-            className="w-20 h-20 cursor-pointer hover:ring-4 hover:ring-red-400"
+            className="w-20 h-20 cursor-pointer hover:ring-4 hover:ring-red-400 hover:rounded-md"
             onClick={() => onPuppySelect(puppy.id)}
           />
         ))}
@@ -66,8 +66,8 @@ export default function GeneratingPlan({ name }) {
       // Simulate getting data after 2 seconds
       const fetchedData = null; // Change this to simulate real data or null
       setData(fetchedData); // Set fetched data
-      setIsLoading(false); // Set loading to false after fetching
-    }, 2000);
+      setIsLoading(true); // Set loading to false after fetching
+    }, 6000);
   }, []);
 
   const handlePuppySelect = (puppyId) => {
@@ -77,21 +77,25 @@ export default function GeneratingPlan({ name }) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8eee4]">
       {isLoading ? (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8eee4]">
+        <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8eee4] animate-moveIn">
           <h1 className="font-pixelify text-6xl text-black">Hold On</h1>
           <h2 className="font-pixelify text-6xl text-black mt-4">{name}</h2>
           <div className="mt-12">
-            <img src="/images/house.gif" alt="Pixel House" className="w-96 h-96" />
+            <img src="/images/house.gif" alt="Pixel House" className="w-60 h-auto" />
           </div>
-          <p className="font-pixelify text-2xl text-black mt-8">We are generating your Plan~</p>
+          <p className="font-mono  text-3xl text-black mt-8">We are generating your Plan~</p>
+          {/* <PuppySelection onPuppySelect={handlePuppySelect} /> */}
         </div>
       ) : (
         // Render PuppySelection if data is not null
         data ? (
-          <PuppySelection onPuppySelect={handlePuppySelect} />
+          // <PuppySelection onPuppySelect={handlePuppySelect} />
+          <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8eee4]">
+            <h1>yes</h1>
+        </div>
         ) : (
           // Render another screen if no data is available
-          <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8eee4]">
+          <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8eee4] animate-moveIn">
             <h1 className="font-pixelify text-6xl text-black">No Plan Available</h1>
             <p className="font-pixelify text-2xl text-black mt-8">Please try again later.</p>
           </div>

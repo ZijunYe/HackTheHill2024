@@ -43,6 +43,7 @@ You are an AI assistant for a self-improvement application. Your task is to gene
 - **Age**: The user's age.
 - **Gender**: The user's gender.
 - **TimeSpan**: The total time span available to achieve the goal (in days).
+- **Score**: Set it as user's score.
 
 Please generate a roadmap in JSON format. The JSON should be an array where each element contains the following fields:
 
@@ -65,6 +66,7 @@ Please generate a roadmap in JSON format. The JSON should be an array where each
 def generate_roadmap():
     data = request.get_json()
     goal = data.get('Goal')
+    score = data.get('Score')
     difficulty_level = data.get('DifficultyLevel')
     age = data.get('Age')
     gender = data.get('Gender')
@@ -83,6 +85,7 @@ Please generate a personalized roadmap to help me achieve my goal.
 - **Goal**: {goal}
 - **DifficultyLevel**: {difficulty_level}
 - **Age**: {age}
+- **Score**: {score}
 - **Gender**: {gender}
 - **TimeSpan**: {time_span}
 
@@ -153,6 +156,7 @@ Generate a roadmap in JSON format, where the JSON is an array and each element c
             'Age': age,
             'Gender': gender,
             'TimeSpan': time_span,
+            'Score': score,
             'roadmap': roadmap,  # Include the generated roadmap
         }
         # Store the JSON directly into Firestore
@@ -256,93 +260,113 @@ logger = logging.getLogger(__name__)
 #     except Exception as e:
 #         logger.error(f"Error: {str(e)}")
 #         raise  # Raise the error for handling elsewhere
-
-# def delete_message_after_json(input_string):
-#     index = input_string.find(']')
-#     if index != -1:
-#         return input_string[:index + 1]
-#     return input_string
-
-# @app.route('/regenerate_dataset', methods=['POST'])
-# def regenerate_dataset():
-#     data = request.get_json()
-#     index = data.get("Index")
-#     feedback = data.get("Feedback")
     
-#     try:
-#         # Check if data is valid
-#         if not data:
-#             logger.error("No data provided")
-#             return jsonify({'error': 'No data provided'}), 400
-
-#         # Retrieve the existing roadmap
-#         doc_ref = db.collection('Roadmap').document('map')
-#         doc = doc_ref.get()
-#         logger.info("Document reference: %s", doc_ref)
-#         existing_data = doc.to_dict().get('data', [])
-
-#         if not existing_data:
-#             return jsonify({'error': 'Roadmap data not found'}), 404
-
-#         # Ensure the index is within bounds
-#         if index < 1 or index > len(existing_data):
-#             return jsonify({'error': 'Index out of bounds'}), 400
-
-#         # Update the roadmap with the feedback
-#         print(existing_data)
-#         updated_roadmap = update_roadmap(existing_data, index, feedback)
-        
-#         # Print the updated roadmap (for debugging)
-#         print("Updated Roadmap:", json.dumps(updated_roadmap, indent=2))
-
-#         # Update the document with the modified data
-#         doc_ref.set({'data': updated_roadmap})
-
-#         # Return the updated roadmap along with the success message
-#         return jsonify({'message': 'Roadmap updated successfully', 'updated_data': updated_roadmap}), 200
-
-#     except Exception as e:
-#         logger.error("Error updating roadmap: %s", str(e))
-#         return jsonify({'error': str(e)}), 500
-
+@app.route('/update_roadmap', methods=['POST'])
+def update_roadmap():
+    # Get the feedback from the request body
+    data = request.get_json()
+    feedback = data.get('Feedback')
     
-# @app.route('/change_dataset', methods=['POST']) 
-# def change_dataset():
-#     data = request.get_json()
-#     index = data["Index"]
-#     print(data["Index"])
-#     print("\n")
+    # Validate input
+    if not feedback:
+        return jsonify({'error': 'Feedback is required.'}), 400
 
+    logger.info('Updating roadmap based on feedback: %s', feedback)
     
-#     try:
-#         # Retrieve the JSON data from the request
-#         data = request.get_json()
-#         logger.info("Received data: %s", data)
-        
-#         # Check if data is valid
-#         if not data:
-#             logger.error("No data provided")
-#             return jsonify({'error': 'No data provided'}), 400
+    try:
+        # Retrieve the existing roadmap and user details from Firestore
+        doc_ref = db.collection('Roadmap').document('map')
+        doc = doc_ref.get()
+        if not doc.exists:
+            return jsonify({'error': 'No roadmap found in Firestore.'}), 404
 
-#         # Retrieve the existing roadmap
-#         doc_ref = db.collection('Roadmap').document('map')
-#         doc = doc_ref.get()
-#         logger.info("Document reference: %s", doc_ref)
-#         logger.info("document: %s", doc)
-#         existing_data = doc.to_dict().get('data', [])
-#         existing_data[index-1] = data
-        
-#         # Update the document with the modified data
-#         doc_ref.set({'data': existing_data})  
-#         #doc_ref.set(data)  
-#         logger.info("Roadmap updated successfully")
+        existing_data = doc.to_dict()
+        existing_roadmap = existing_data.get('roadmap', [])
+        goal = existing_data.get('Goal')
+        difficulty_level = existing_data.get('DifficultyLevel')
+        age = existing_data.get('Age')
+        gender = existing_data.get('Gender')
+        time_span = existing_data.get('TimeSpan')
 
-#         return jsonify({'message': 'Roadmap updated successfully'}), 200
+        # Validate that all necessary information is available
+        if not all([goal, difficulty_level, age, gender, time_span, existing_roadmap]):
+            return jsonify({'error': 'Incomplete user data or roadmap in Firestore.'}), 400
 
-#     except Exception as e:
-#         logger.error("Error updating roadmap: %s", str(e))
-#         return jsonify({'error': str(e)}), 500
+        # Log the existing roadmap and user information
+        logger.info('Existing roadmap: %s', existing_roadmap)
+        logger.info('User details - Goal: %s, DifficultyLevel: %s, Age: %s, Gender: %s, TimeSpan: %s', 
+                    goal, difficulty_level, age, gender, time_span)
+
+        # Construct the prompt with the existing roadmap and feedback
+        user_prompt = f"""
+        The user has an existing roadmap to achieve the goal: **{goal}**.
+        Here is the current roadmap:
+
+        {json.dumps(existing_roadmap, indent=2)}
+
+        The user provided the following feedback to improve or modify the roadmap:\n- **Feedback**: {feedback}
+
+        Please generate a personalized roadmap to help me achieve my goal.
+
+        - **Goal**: {goal}
+        - **DifficultyLevel**: {difficulty_level}
+        - **Age**: {age}
+        - **Gender**: {gender}
+        - **TimeSpan**: {time_span}
+
+
+        Please update the roadmap based on the feedback. Generate the updated roadmap in JSON format, ensuring the same structure and keep the exisitng task from and generate the future task based on the last :
+
+        - **Task**: A specific action or activity for the updated roadmap.
+        - **Days**: The number of days allocated to complete the task.
+        - **Index**: The index of task.
+        - **Description**: A detailed explanation of the task and how it contributes to the goal.
+        - **ResourceLinks**: An array of relevant resource links to assist in completing the task.
+
+        Ensure that the roadmap is well-structured and aligns with the feedback provided by the user.
+        """
+
+        # Call OpenAI API to adjust the roadmap based on the feedback
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {
+                    "role": "system",
+                    "content": SYSTEM_PROMPT
+                },
+                {
+                    "role": "user",
+                    "content": user_prompt
+                }
+            ],
+            temperature=0.7,
+            max_tokens=2048,
+            top_p=1,
+            frequency_penalty=0,
+            presence_penalty=0,
+        )
+
+        # Extract the content of the response
+        raw_content = response.choices[0].message.content.strip()
         
+        # Clean the content to remove any unwanted formatting or markdown
+        cleaned_content = raw_content.replace('```json', '').replace('```', '').strip()
+        # Parse the cleaned JSON content into a dictionary
+        updated_roadmap = json.loads(cleaned_content)
+        print(update_roadmap)
+        # Update the existing Firestore document with the new roadmap
+        doc_ref.update({'roadmap': updated_roadmap})
+
+        # Return the updated roadmap in the response
+        return jsonify({'updated_roadmap': updated_roadmap}), 200
+    
+    except json.JSONDecodeError as e:
+        logger.error(f"JSON decoding error: {str(e)}")
+        return jsonify({'error': 'Failed to parse the OpenAI response as JSON.'}), 500
+    except Exception as e:
+        logger.error(f"Error: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
 
 @app.route('/adjust_subsequent_tasks', methods=['POST'])
 def adjust_subsequent_tasks():
@@ -504,12 +528,40 @@ def update_task_status():
 
         # Update the roadmap document in Firestore
         doc_ref.update({'roadmap': roadmap_data})
+        
+        score = task['Days']
+       # print(score)
+        update_score(score, task_index)
 
         return jsonify({'message': f'Task at index {task_index} updated to finished successfully', 'updated_task': task}), 200
 
     except Exception as e:
         logger.error(f"Error updating task status: {str(e)}")
         return jsonify({'error': str(e)}), 500
+
+
+def update_score(score, task_index):
+    try:
+        # Retrieve the existing roadmap document
+        doc_ref = db.collection('Roadmap').document('map')
+        doc = doc_ref.get()
+
+        if not doc.exists:
+            return jsonify({'error': 'Roadmap document not found.'}), 404
+
+        roadmap_data = doc.to_dict()
+        
+        current_score = roadmap_data.get('Score', task_index-1)  
+        updated_score = int(current_score) + int(score) 
+
+        doc_ref.update({'Score': str(updated_score)})
+
+        return jsonify({'message': 'Score updated successfully', 'updated_score': updated_score}), 200
+
+    except Exception as e:
+        logger.error(f"Error updating score: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True)
