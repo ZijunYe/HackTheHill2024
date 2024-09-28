@@ -6,6 +6,17 @@ from flask_cors import CORS
 from openai import OpenAI
 from dotenv import load_dotenv
 
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import firestore
+
+# Replace 'path/to/your/keyfile.json' with the actual path to your downloaded JSON file
+cred = credentials.Certificate('firebaseConfig.json')
+firebase_admin.initialize_app(cred)
+
+db = firestore.client()
+
+
 # Load environment variables
 load_dotenv()
 
@@ -123,11 +134,13 @@ Generate a roadmap in JSON format, where the JSON is an array and each element c
         }
         )
         raw_content = response.choices[0].message.content
-
-# Step 2: Remove the markdown formatting (```json and ```)
+        # Step 2: Remove the markdown formatting (```json and ```)
         cleaned_content = raw_content.strip('```json').strip('```')
         # print(cleaned_content)
         roadmap = json.loads(cleaned_content)
+        print(roadmap)
+        doc_ref = db.collection('Roadmap').document('map')
+        doc_ref.set({'data': cleaned_content})
         return jsonify({'roadmap': roadmap}), 200
     except json.JSONDecodeError as e:
         logger.error(f"JSON decoding error: {str(e)}")
