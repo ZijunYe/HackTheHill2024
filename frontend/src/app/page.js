@@ -63,6 +63,11 @@ export default function Home() {
               <img className="w-64 h-auto" src="/images/cursor.png" alt="Cursor" />
             </div>
           </div>
+          <div className="absolute bottom-0 w-full flex px-10 animate-moveIn">
+            {/* <img  className="w-28 h-auto" src="/images/doggy.gif"></img> */}
+            <img className="w-40 pt-10 animate-move-loop" src="/images/moving/rabbit_walking.gif"></img>
+        </div>
+          
         </div>
       )}
 

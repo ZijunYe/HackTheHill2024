@@ -25,9 +25,16 @@ module.exports = {
             transform: 'translateY(0)',
           },
         },
+        move: {
+          '0%': { transform: 'translateX(0) scaleX(1)' }, // Normal at the start
+          '50%': { transform: 'translateX(calc(100vw - 10rem)) scaleX(1)' }, // Move to the right without flipping
+          '51%': { transform: 'translateX(calc(100vw - 10rem)) scaleX(-1)' }, // Flip after reaching the right
+          '100%': { transform: 'translateX(0) scaleX(-1)' }, // Move back flipped
+        },
       },
       animation: {
         moveIn: 'moveIn 1s ease-out forwards',
+        'move-loop': 'move 40s ease-in-out infinite',
       },
     },
   },
