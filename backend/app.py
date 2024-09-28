@@ -4,6 +4,7 @@ import logging
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from openai import OpenAI
+import openai
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -136,62 +137,75 @@ Generate a roadmap in JSON format, where the JSON is an array and each element c
         logger.error(f"Error: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-# @app.route('/feedback', methods=['POST'])
-# def feedback():
-#     data = request.get_json()
-#     feedback_text = data.get('Feedback')
-#     goal = data.get('Goal')
-#     difficulty_level = data.get('DifficultyLevel')
-#     age = data.get('Age')
-#     gender = data.get('Gender')
-#     time_span = data.get('TimeSpan')
+@app.route('/update_roadmap', methods=['POST'])
+def update_roadmap():
+    data = request.get_json()
+    existing_roadmap = data.get('ExistingRoadmap')
+    feedback = data.get('Feedback')
+    goal = data.get('Goal')
 
-#     # Validate inputs
-#     if not all([feedback_text, goal, difficulty_level, age, gender, time_span]):
-#         return jsonify({'error': 'All fields (Feedback, Goal, DifficultyLevel, Age, Gender, TimeSpan) are required.'}), 400
+    # Validate inputs
+    if not all([existing_roadmap, feedback, goal]):
+        return jsonify({'error': 'All fields (ExistingRoadmap, Feedback, Goal) are required.'}), 400
 
-#     logger.info('Regenerating roadmap based on feedback.')
+    logger.info('Updating roadmap for goal: %s based on feedback: %s', goal, feedback)
 
-#     # Prepare the user prompt with feedback
-#     user_prompt = f"""
-# Please adjust the personalized roadmap based on the following feedback:
+    # Prepare the user prompt
+    user_prompt = f"""
+The user has an existing roadmap to achieve the goal: **{goal}**.
+Here is the current roadmap:
 
-# "{feedback_text}"
+{json.dumps(existing_roadmap, indent=2)}
 
-# - **Goal**: {goal}
-# - **DifficultyLevel**: {difficulty_level}
-# - **Age**: {age}
-# - **Gender**: {gender}
-# - **TimeSpan**: {time_span}
+The user provided the following feedback to improve or modify the roadmap:
+- **Feedback**: {feedback}
 
-# Generate an adjusted roadmap in JSON format, where the JSON is an array and each element contains the following fields:
+Please update the roadmap based on the feedback. Generate the updated roadmap in JSON format, ensuring the same structure as the existing roadmap:
 
-# - **Task**: A specific action or activity I should perform.
-# - **Days**: The number of days allocated to complete the task.
-# - **Description**: A detailed explanation of the task and how it contributes to my goal.
-# - **ResourceLinks**: An array of relevant resource links to assist me in completing the task.
+- **Task**: A specific action or activity for the updated roadmap.
+- **Days**: The number of days allocated to complete the task.
+- **Description**: A detailed explanation of the task and how it contributes to the goal.
+- **ResourceLinks**: An array of relevant resource links to assist in completing the task.
 
-# **Instructions:**
+Ensure that the roadmap is well-structured and aligns with the feedback provided by the user.
+"""
 
-# - Ensure that the tasks are tailored to my age and gender.
-# - Align the difficulty of the tasks with the specified difficulty level.
-# - The sum of the days for all tasks should not exceed the provided time span.
-# - Provide clear and concise descriptions.
-# - Include reputable and relevant resource links.
-# """
+    try:
+        # Use the OpenAI client to generate a response
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are an expert coach helping users achieve their goals by generating structured roadmaps."
+                },
+                {
+                    "role": "user",
+                    "content": user_prompt
+                }
+            ],
+            temperature=0.7,
+            max_tokens=2048,
+            top_p=1,
+            frequency_penalty=0,
+            presence_penalty=0
+        )
+        # Extract and process the content from OpenAI's response
+        raw_content = response.choices[0].message.content
+        print(raw_content)
+        # Step 2: Remove the markdown formatting (```json and ```)
+        cleaned_content = raw_content.strip('```json').strip('```')
 
-#     try:
-#         # Use the OpenAI client to generate a response
-#         assistant_reply = client.generate_response(SYSTEM_PROMPT, user_prompt)
-#         roadmap = json.loads(assistant_reply)
+        # Parse the cleaned JSON content
+        updated_roadmap = json.loads(cleaned_content)
 
-#         return jsonify({'roadmap': roadmap}), 200
-#     except json.JSONDecodeError as e:
-#         logger.error(f"JSON decoding error: {str(e)}")
-#         return jsonify({'error': 'Failed to parse the OpenAI response as JSON.'}), 500
-#     except Exception as e:
-#         logger.error(f"Error: {str(e)}")
-#         return jsonify({'error': str(e)}), 500
+        return jsonify({'updated_roadmap': updated_roadmap}), 200
+    except json.JSONDecodeError as e:
+        logger.error(f"JSON decoding error: {str(e)}")
+        return jsonify({'error': 'Failed to parse the OpenAI response as JSON.'}), 500
+    except Exception as e:
+        logger.error(f"Error: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
