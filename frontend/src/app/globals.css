@@ -27,6 +27,37 @@
   animation: bob 1s ease-in-out infinite; /* Adjust duration and timing as needed */
 }
 
+@keyframes fly {
+  0% {
+    transform: translateX(100vw); /* Start off the left side */
+  }
+  100% {
+    transform: translateX(-100vw); /* Move to the right side */
+  }
+}
+.bird1 {
+  position: absolute;
+  top: 25%; 
+  width: 8vw;
+  animation: fly 10s linear infinite; 
+  transform: scaleX(-1); /* This flips the image horizontally */
+}
+.bird2 {
+  position: absolute;
+  top: 10%; 
+  width: 6vw;
+  animation: fly 10.05s linear infinite; 
+  transform: scaleX(-1); /* This flips the image horizontally */
+}
+
+.bird3 {
+  position: absolute;
+  top: 32%; 
+  width: 6vw;
+  animation: fly 10.052s linear infinite; 
+  transform: scaleX(-1); /* This flips the image horizontally */
+}
+
 
 body {
   color: var(--foreground);

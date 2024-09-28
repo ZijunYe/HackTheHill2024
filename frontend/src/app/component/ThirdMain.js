@@ -68,7 +68,12 @@ export default function ThirdMain({ name, textareaInput, onSubmit }) {
       <div className="flex flex-col items-center justify-center animate-moveIn relative z-10">
         <div className="font-pixelify text-8xl text-black flex flex-col items-center justify-center mb-12">
           <h1 className="text-center">Sounds Interesting <br /> {name}!</h1>
-          <img src="/images/smileChat.png" alt="smile" className="mt-4" />
+          <div className="absolute inset-0">
+            <img src="/images/bird.gif" alt="bird1" className="bird1" />
+            <img src="/images/bird.gif" alt="bird2" className="bird2" />
+            <img src="/images/bird.gif" alt="bird" className="bird3" />
+          </div>
+          <img src="/images/smileChat.png" alt="smile" className="mt-4 bobbing" />
         </div>
 
         <div className="font-pixelify text-center text-3xl text-black mb-10">
