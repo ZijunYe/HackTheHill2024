@@ -12,9 +12,9 @@ module.exports = {
         foreground: "var(--foreground)",
       },
       fontFamily: {
-        pixelify: ['"Pixelify Sans"', 'sans-serif'],
+        pixelify: ['"Pixelify Sans"', "sans-serif"],
       },
     },
   },
-  plugins: [],
+  plugins: [require("tailwindcss-animated")],
 };
