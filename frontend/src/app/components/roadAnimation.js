@@ -1,6 +1,12 @@
 "use client";
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import {
+  useState,
+  useEffect,
+  useRef,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
+import { motion, steps } from "framer-motion";
 import TaskCard from "../component/TaskCard";
 export default function RoadAnimation() {
   const svgCount_horz = 5; // Number of times the pattern repeats
@@ -11,6 +17,10 @@ export default function RoadAnimation() {
   const [roadMap, setRoadMap] = useState(null);
   const [loading, setLoading] = useState(true);
   const [Rabbit_Location, setRabitLocation] = useState(0);
+  const [completedTasks, setCompletedTasks] = useState([]); // Track completed tasks
+  const [taskCompleted, setTaskCompleted] = useState(false); // Track if the task is completed
+  const [isCompleted, setIsCompleted] = useState(false); // Track task completion
+
   const movementSequence = [
     { direction: "down", steps: 1 },
     { direction: "right", steps: 1 },
@@ -18,12 +28,39 @@ export default function RoadAnimation() {
     { direction: "left", steps: 1 },
   ];
 
-  // State Variables
+  // Optional delay function
+  const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+  const [moveInProgress, setMoveInProgress] = useState(false); // Track if move is in progress
+
+  // Refs to hold the latest state values
+  const resolveMoveRef = useRef(null); // Create a ref to store resolveMove
+  const positionRef = useRef({ left: 30, top: 0 }); // Ref to keep track of the latest position
+
+  // State Variables for Position and Movement
   const [position, setPosition] = useState({ left: 30, top: 0 }); // Rabbit's position
   const [currentMovementIndex, setCurrentMovementIndex] = useState(0); // Index in movementSequence
   const [stepsTaken, setStepsTaken] = useState(0); // Steps taken in current direction
   const [isMoving, setIsMoving] = useState(false); // Movement state
 
+  // **1. Define `currentMovementIndex` Before Its Ref**
+  const currentMovementIndexRef = useRef(currentMovementIndex); // Define after `currentMovementIndex`
+
+  // **2. Synchronize `currentMovementIndexRef` with `currentMovementIndex`**
+  useEffect(() => {
+    currentMovementIndexRef.current = currentMovementIndex;
+    console.log(
+      `currentMovementIndexRef updated to: ${currentMovementIndexRef.current}`
+    );
+  }, [currentMovementIndex]);
+
+  // **3. Synchronize `positionRef` with `position` State**
+  useEffect(() => {
+    positionRef.current = position;
+    console.log(
+      `positionRef updated to: left=${position.left}, top=${position.top}`
+    );
+  }, [position]);
   // Handler for button press to move the rabbit
   useEffect(() => {
     const idleImage = new Image();
@@ -60,51 +97,72 @@ export default function RoadAnimation() {
 
   // Handler for button press to move the rabbit
   const handleMove = () => {
-    if (isMoving) return; // Prevent multiple simultaneous moves
+    return new Promise((resolve) => {
+      if (isMoving) {
+        console.log("Already moving, skipping this move.");
+        resolve(); // Optionally resolve immediately if already moving
+        return;
+      }
 
-    const currentMovement = movementSequence[currentMovementIndex];
-    const { direction, steps } = currentMovement;
+      setIsMoving(true); // Mark that a move is in progress
+      resolveMoveRef.current = resolve; // Store the resolve function
 
-    // Calculate new position based on direction
-    let newLeft = position.left;
-    let newTop = position.top;
-    var speed = 4;
-    if (isRabitFirstBlock && direction === "down") {
-      speed = 1;
-      setisRabitFirstBlock(false);
-    } else {
-      speed = 4;
-    }
-    switch (direction) {
-      case "down":
-        newTop += svgSize * speed;
-        break;
-      case "right":
-        newLeft += svgSize * speed;
-        break;
-      case "left":
-        newLeft -= svgSize * speed;
-        break;
-      default:
-        break;
-    }
-    // Boundary Checks to prevent moving out of grid
+      const currentMovement = movementSequence[currentMovementIndexRef.current];
+      if (!currentMovement) {
+        console.log("No current movement defined.");
+        resolve();
+        setIsMoving(false);
+        return;
+      }
 
-    // Update Position
-    setPosition({ left: newLeft, top: newTop });
+      const { direction, steps } = currentMovement;
 
-    // Increment steps taken in current direction
-    if (stepsTaken + 1 >= steps) {
-      // Reset steps and move to next movement in the sequence
-      setStepsTaken(0);
-      setCurrentMovementIndex(
-        (prevIndex) => (prevIndex + 1) % movementSequence.length
-      );
-    } else {
-      setStepsTaken((prevSteps) => prevSteps + 1);
-    }
+      // Get the latest position from the ref
+      let newLeft = positionRef.current.left;
+      let newTop = positionRef.current.top;
+      var speed = 4;
+      if (isRabitFirstBlock && direction === "down") {
+        speed = 1;
+        setisRabitFirstBlock(false);
+      } else {
+        speed = 4;
+      }
+      switch (direction) {
+        case "down":
+          newTop += svgSize * speed;
+          break;
+        case "right":
+          newLeft += svgSize * speed;
+          break;
+        case "left":
+          newLeft -= svgSize * speed;
+          break;
+        case "up":
+          newTop -= svgSize * speed;
+          break;
+        default:
+          console.warn(`Unknown direction: ${direction}`);
+          break;
+      }
+
+      console.log(`Moving ${direction}: newLeft=${newLeft}, newTop=${newTop}`);
+
+      // Update position state
+      setPosition({ left: newLeft, top: newTop });
+
+      // Update steps taken and movement index
+      if (stepsTaken + 1 >= steps) {
+        setStepsTaken(0);
+        setCurrentMovementIndex((prevIndex) => {
+          const newIndex = (prevIndex + 1) % movementSequence.length;
+          currentMovementIndexRef.current = newIndex; // Update the ref
+          return newIndex;
+        });
+      } else {
+        setStepsTaken((prevSteps) => prevSteps + 1);
+      }
+    });
   };
-
   let cumulativeIndex = 0; // Initialize cumulativeIndex
 
   useEffect(() => {
@@ -121,20 +179,30 @@ export default function RoadAnimation() {
     fetchData();
   }, []);
 
-  const [completedTasks, setCompletedTasks] = useState([]); // Track completed tasks
-
+  useEffect(() => {
+    if (!moveInProgress && taskCompleted) {
+      // Trigger the next move when the current one is complete
+      console.log("Move completed, starting the next one");
+      handleCompletionChange(task_id, true); // Pass the task_id and completion status
+    }
+  }, [moveInProgress, taskCompleted]); // Run when moveInProgress or taskCompleted is updated
   // Callback to handle task completion state changes
-  const handleCompletionChange = (task_id, isCompleted) => {
-    if (isCompleted) {
-      // Add task to completed tasks list
+  const handleCompletionChange = async (task_id, isTaskCompleted) => {
+    if (isTaskCompleted) {
       setCompletedTasks((prev) => [...prev, task_id]);
-      console.log(`Task ${task_id + 2} completed!`);
-      for (let index = 0; index < task_id; index++) {
-        handleMove(task_id);
-        console.log(index);
+      setIsCompleted(true); // Mark the task as completed
+      console.log(`Task ${task_id} completed!`);
+
+      for (let index = 0; index < 2; index++) {
+        // Adjust the number of moves as needed
+        console.log(`Starting move ${index}`);
+        await handleMove(); // Wait for the current move to complete
+        console.log(`Move ${index} completed`);
+        await delay(500); // Optional delay between moves
       }
+
+      console.log("All moves completed");
     } else {
-      // Remove task from completed tasks list
       setCompletedTasks((prev) => prev.filter((id) => id !== task_id));
       console.log(`Task ${task_id} marked as incomplete.`);
     }
@@ -160,26 +228,35 @@ export default function RoadAnimation() {
           height={svgSize}
           className="absolute z-10"
           style={{
-            left: `${position.left}px`,
-            top: `${position.top}px`,
             transform:
-              getPreviousDirection() === "right" ? "scaleX(1)" : "scaleX(-1)",
-
-            // Flip horizontally when moving left
+              getPreviousDirection() === "right" ? "scaleX(1)" : "scaleX(-1)", // Flip horizontally when moving left
           }}
           animate={{
             left: `${position.left + 20}px`,
             top: `${position.top + 50}px`,
           }}
           transition={{
-            ease: "linear",
-            duration: 0.001, // Increased from 0 to 300
-            x: { duration: 1 }, // Reduced from 100 to 20 for smoother animation
+            type: "spring",
+            stiffness: 300,
+            damping: 200,
           }}
-          onAnimationStart={() => setIsMoving(true)}
-          onAnimationComplete={() => setIsMoving(false)}
-        />
+          onAnimationStart={() => {
+            console.log("Animation started");
+            setIsMoving(true); // Optional: Already set in handleMove
+          }}
+          onAnimationComplete={() => {
+            console.log("Animation complete");
+            setIsMoving(false); // Reset the isMoving flag
 
+            if (resolveMoveRef.current) {
+              console.log("Resolving move promise");
+              resolveMoveRef.current(); // Resolve the current move
+              resolveMoveRef.current = null; // Reset the ref
+            } else {
+              console.log("No move promise to resolve");
+            }
+          }}
+        />
         <div>
           <div className="flex flex-col w-full ">
             {Array.from({ length: 1 }).map((_, index) => {
