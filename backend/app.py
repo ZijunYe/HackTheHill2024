@@ -88,7 +88,7 @@ def calculate_reward_points():
         logger.error(f"Error calculating reward points: {str(e)}")
         return 0  # Return 0 in case of any errors
 
-@app.route('/generate_roadmap', methods=['POST'])
+@app.route('/api/generate_roadmap', methods=['POST'])
 def generate_roadmap():
     data = request.get_json()
     goal = data.get('Goal')
@@ -212,7 +212,7 @@ import logging
 
 logger = logging.getLogger(__name__)
     
-@app.route('/update_roadmap', methods=['POST'])
+@app.route('/api/update_roadmap', methods=['POST'])
 def update_roadmap():
     # Get the feedback from the request body
     data = request.get_json()
@@ -317,7 +317,7 @@ def update_roadmap():
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/adjust_subsequent_tasks', methods=['POST'])
+@app.route('/api/adjust_subsequent_tasks', methods=['POST'])
 def adjust_subsequent_tasks():
     data = request.get_json()
     task_index = data.get('Index')
@@ -449,7 +449,7 @@ Provide just the difficulty level.
 
     return inferred_difficulty
 
-@app.route('/update_task_status', methods=['PATCH'])
+@app.route('/api/update_task_status', methods=['PATCH'])
 def update_task_status():
     try:
         # Retrieve the request data
@@ -489,7 +489,7 @@ def update_task_status():
         logger.error(f"Error updating task status: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-@app.route('/get_roadmap', methods=['GET'])
+@app.route('/api/get_roadmap', methods=['GET'])
 def get_roadmap():
     try:
         # Retrieve the roadmap document from Firestore
