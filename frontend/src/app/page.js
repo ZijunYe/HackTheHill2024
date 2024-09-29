@@ -47,7 +47,7 @@ export default function Home() {
           </div>
 
           <h1 className="font-pixelify text-8xl sm:text-8xl text-center text-black pt-10">
-            Self Improvement
+            PAWGRESS
           </h1>
 
           <div className="flex flex-col items-center pt-10">  
