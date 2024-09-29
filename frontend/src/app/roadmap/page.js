@@ -1,9 +1,28 @@
-
+"use client";
 import RoadAnimation from "../components/roadAnimation";
 import IconLinks from "../component/listIcons";
 import Score from "../component/Score";
+import { useState, useEffect } from "react";
 
 export default function RoadMap() {
+  const [username, setUsername] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Fetch data on the client side
+    async function fetchData() {
+      const res = await fetch("/api/get_username ");
+      const result = await res.json();
+      console.log(result["Name"]);
+      setUsername(result["Name"]);
+      setLoading(false);
+    }
+
+    fetchData();
+  }, []);
+
+  if (loading) return <p>Loading...</p>;
+
   return (
     <div className="flex flex-row min-h-screen">
       <Score></Score>
