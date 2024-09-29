@@ -7,7 +7,7 @@ export default function Score() {
   const [error, setError] = useState(null); // State to handle errors
   const [loading, setLoading] = useState(true); // State for loading state
   
-  const fakeData = { score: 12 }; // Define fake data to be used in case of an error
+  const fakeData = { score: 0 }; // Define fake data to be used in case of an error
 
   useEffect(() => {
     // Function to fetch score data
