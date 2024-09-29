@@ -21,8 +21,10 @@ export default function TaskCard({
     <div className="absolute z-11 bg-white rounded-lg outline outline-2 outline-black w-[500px] p-6">
       {/* Header with Task Number and Name */}
       <div className="flex items-center">
-        <h1 className="font-pixelify font-bold text-5xl">{task_id}</h1>
-        <h1 className="font-pixelify font-bold text-4xl p-2">
+        <h1 className="font-pixelify font-bold text-5xl">
+        {String(task_id).startsWith('1') ? task_id : parseInt(task_id) - 1}
+        </h1>
+        <h1 className="font-mono font-bold text-4xl p-2">
           {task_Name} Task Name
         </h1>
       </div>
