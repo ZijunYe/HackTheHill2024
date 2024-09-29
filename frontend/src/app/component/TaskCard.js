@@ -1,20 +1,5 @@
-// export default function TaskCard({ task_id, task_Name,task_description,duration,difficulty }) {
-//   return (
-//     <>
-//       <div className="absolute outline outline-2 outline-offset-2 mr-96 bg-white rounded-lg items-end justify-end w-1/2  outline-black">
-//         <h1 className="p-5 font-bold text-4xl">01</h1>
-//         <p className="p-5 font-light text-md">
-//           s simply dummy text of the printing and typesetting industry. Lorem
-//           Ipsum has been the industry's standard dummy text ever since the
-//           1500s, when an unknown printer took a galley of type and scrambled it
-//           to make a type specimen book. It has survived not only five centuries,
-//           but also the leap into electronic typesetting, remaining essentially
-//           unchanged
-//         </p>
-//       </div>
-//     </>
-//   );
-// }
+import { useTaskCompletion } from "@/app/hooks/useTaskCompletion"; // Import your custom hook
+
 import { useState } from "react";
 export default function TaskCard({
   task_id,
@@ -22,9 +7,13 @@ export default function TaskCard({
   task_description,
   task_duration,
   task_diffcultyLevel,
+  onCompletionChange,
 }) {
   const [isClicked, setIsClicked] = useState(false);
-
+  const { isCompleted, toggleCompletion } = useTaskCompletion(
+    task_id,
+    onCompletionChange
+  );
   const handleClick = () => {
     setIsClicked(!isClicked);
   };
@@ -75,12 +64,12 @@ export default function TaskCard({
         {/* Clickable image div */}
         <div
           className={`w-8 h-8 rounded-full flex items-center justify-center cursor-pointer ${
-            isClicked ? "bg-green-600" : "bg-red-600"
+            isCompleted ? "bg-green-600" : "bg-red-600"
           }`}
-          onClick={handleClick}
+          onClick={toggleCompletion}
         >
-          {/* Conditionally render check or uncheck based on the state */}
-          {isClicked ? (
+          {/* Conditionally render check or uncheck based on the completion status */}
+          {isCompleted ? (
             <span className="text-white text-xl">✔</span> // Check mark
           ) : (
             <span className="text-white text-xl"> </span> // Unchecked mark
