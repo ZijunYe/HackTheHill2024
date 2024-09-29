@@ -236,7 +236,7 @@ export default function RoadAnimation() {
                             animationDelay: `${delay}ms`,
                           }}
                         >
-                          <TaskCard task_description="" task_id={""} />
+                          <TaskCard className=" pl-10  flex " />
                         </div>
                       ) : (
                         <></>
@@ -339,7 +339,7 @@ export default function RoadAnimation() {
                       </svg>
                       {index === 1 ? (
                         <div
-                          className=" w-1/2 flex justify-end animate-jump-in animate-once animate-ease-out "
+                          className=" w-full  flex justify-end animate-jump-in animate-once animate-ease-out "
                           style={{
                             animationDelay: `${delay}ms`,
                           }}
