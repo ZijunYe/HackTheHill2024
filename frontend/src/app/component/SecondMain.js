@@ -58,8 +58,8 @@ export default function SecondMain({ name, onSubmit }) {
         />
       </div>
       </div>
-      <div className="flex flex-col items-center justify-center animate-moveIn relative z-10">
-        <div className="font-pixelify text-8xl text-black flex items-center justify-center mb-12">
+      <div className="flex flex-col items-center justify-center animate-moveIn relative z-10 pt=20">
+        <div className="font-pixelify text-8xl text-black flex items-center justify-center mb-24">
           <h1>Hello, {name}</h1>
           <img
         src="/images/smileChat.png"
@@ -68,21 +68,41 @@ export default function SecondMain({ name, onSubmit }) {
       />
         </div>
 
-        <div className="box bg-white border-black border-8 rounded-md shadow-md px-32 py-8 inline-block text-center relative mt-8">
+        {/* <div className="box bg-white border-black border-8 rounded-md shadow-md px-32 py-8 inline-block text-center relative mt-8"> */}
+          {/* <img
+            src="/images/plantGrowth.png"
+            className="absolute top-[-90px] left-1/2 transform -translate-x-1/2"
+            alt="Plant Growth"
+          /> */}
+          {/* <textarea
+            className="font-mono text-black text-2xl font-pixelify text-center outline-none py-2 px-4 resize-none rounded-md  h-32"
+            placeholder="Let me know what kind of aspect you want to improve yourself?"
+            value={textareaInput}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown} 
+          /> */}
+          <div className="relative mb-18">
           <img
             src="/images/plantGrowth.png"
             className="absolute top-[-90px] left-1/2 transform -translate-x-1/2"
             alt="Plant Growth"
           />
-          <textarea
-            className="font-mono text-black text-2xl font-pixelify text-center outline-none py-2 px-4 resize-none rounded-md w-[600px] h-32"
-            placeholder="Let me know what kind of aspect you want to improve yourself?"
-            value={textareaInput}
-            onChange={handleChange}
-            onKeyDown={handleKeyDown} 
-          />
+            <div className="font-mono bg-white border-black border-8 rounded-md shadow-md px-32 py-16 inline-block text-center mb-20">
+              <p className="font-mono text-2xl text-black mb-4">
+                Let me know what kind of aspect you want to improve yourself?
+              </p>
+
+              <textarea
+                className="font-mono text-black text-2xl font-pixelify text-center outline-none py-2 px-4 resize-none rounded-md w-full h-20"
+                placeholder="Such as mental health, relationship,physical health, anything you could think of!"
+                value={textareaInput}
+                onChange={handleChange}
+                onKeyDown={handleKeyDown}
+              />
+          </div>
         </div>
-      </div>
+        </div>
+      {/* </div> */}
 
       <div className="absolute bottom-0 w-full flex justify-between px-10">
         {/* Left side trees */}

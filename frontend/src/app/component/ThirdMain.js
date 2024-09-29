@@ -70,7 +70,7 @@ export default function ThirdMain({ name, textareaInput, onSubmit }) {
           <h1 className="text-center">Sounds Interesting <br /> {name}!</h1>
           <div className="absolute inset-0">
             <img src="/images/bird.gif" alt="bird1" className="bird1" />
-            <img src="/images/bird.gif" alt="bird2" className="bird2" />
+            <img src="/images/bird.gif" alt="bird2" className="bird2 pb-10" />
             <img src="/images/bird.gif" alt="bird" className="bird3" />
           </div>
           <img src="/images/smileChat.png" alt="smile" className="mt-4 bobbing" />

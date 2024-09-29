@@ -34,10 +34,10 @@ export default function Home() {
   };
 
   return (
-    <div className="bg-[#FFF3E6] min-h-screen">
+    <div className="bg-[#FFF3E6] max-h-screen">
       {/* Step 0: Name input */}
       {step === 0 && (
-        <div className="border-black border-8 rounded-xl grid p-64 items-center justify-items-center min-h-screen">
+        <div className="border-black border-8 rounded-xl grid p-64 items-center justify-items-center max-h-screen">
           <div className="relative flex items-center justify-center animate-moveIn">
             <img className="w-96 h-96 absolute z-10" src="/images/Ellipse.svg" alt="Ellipse" />
             <img className="w-80 h-80 relative z-20" src="/images/mountain.gif" alt="Mountain" />
