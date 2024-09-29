@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 
 export default function ThirdMain({ name, textareaInput, onSubmit }) {
   const [goalDuration, setGoalDuration] = useState("");
+  const [difficulty, setDifficulty] = useState("easy");
   const [leftVisibleTrees, setLeftVisibleTrees] = useState(0);
   const [rightVisibleTrees, setRightVisibleTrees] = useState(0);
   const [treeScales, setTreeScales] = useState({
@@ -44,10 +45,10 @@ export default function ThirdMain({ name, textareaInput, onSubmit }) {
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      console.log("Goal duration submitted:", goalDuration);
+      console.log("Goal duration submitted:", goalDuration, "Difficulty:", difficulty);
 
       if (goalDuration.trim()) {
-        onSubmit(goalDuration);
+        onSubmit(goalDuration, difficulty); // Pass both goalDuration and difficulty
       }
     }
   };
@@ -60,6 +61,8 @@ export default function ThirdMain({ name, textareaInput, onSubmit }) {
       // Assuming you want to update textareaInput with this
       // Update this line according to your actual state management
       setTextareaInput(value);
+    } else if (name === "difficulty") {
+      setDifficulty(value); // Update the difficulty state
     }
   };
 
@@ -89,12 +92,26 @@ export default function ThirdMain({ name, textareaInput, onSubmit }) {
 
             <textarea
               name="goalDuration"
-              className="font-mono text-black text-2xl font-pixelify text-center outline-none py-2 px-4 resize-none rounded-md w-full h-20"
+              className="font-mono text-black text-2xl text-center outline-none py-2 px-4 resize-none rounded-md w-full h-20"
               placeholder="Enter your goal duration here..."
               value={goalDuration}
               onChange={handleChange}
               onKeyDown={handleKeyDown}
             />
+
+            <div className="mt-6">
+              <p className="font-mono text-2xl text-black mb-4">Select Difficulty Level:</p>
+              <select
+                name="difficulty"
+                className="font-mono text-black text-2xl font-pixelify outline-none py-2 px-4 rounded-md"
+                value={difficulty}
+                onChange={handleChange}
+              >
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>

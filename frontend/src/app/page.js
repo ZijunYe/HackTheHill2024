@@ -32,7 +32,6 @@ export default function Home() {
     setGoalDuration(duration); // Save goal duration
     setStep(3); // Move to GeneratingPlan step
   };
-  const [isModalOpen, setIsModalOpen] = useState(false);
   return (
     <div className="bg-[#FFF3E6] max-h-screen">
       

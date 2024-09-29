@@ -68,19 +68,6 @@ export default function SecondMain({ name, onSubmit }) {
       />
         </div>
 
-        {/* <div className="box bg-white border-black border-8 rounded-md shadow-md px-32 py-8 inline-block text-center relative mt-8"> */}
-          {/* <img
-            src="/images/plantGrowth.png"
-            className="absolute top-[-90px] left-1/2 transform -translate-x-1/2"
-            alt="Plant Growth"
-          /> */}
-          {/* <textarea
-            className="font-mono text-black text-2xl font-pixelify text-center outline-none py-2 px-4 resize-none rounded-md  h-32"
-            placeholder="Let me know what kind of aspect you want to improve yourself?"
-            value={textareaInput}
-            onChange={handleChange}
-            onKeyDown={handleKeyDown} 
-          /> */}
           <div className="relative mb-18">
           <img
             src="/images/plantGrowth.png"
@@ -93,7 +80,7 @@ export default function SecondMain({ name, onSubmit }) {
               </p>
 
               <textarea
-                className="font-mono text-black text-2xl font-pixelify text-center outline-none py-2 px-4 resize-none rounded-md w-full h-20"
+                className="font-mono text-black text-2xl text-center outline-none py-2 px-4 resize-none rounded-md w-full h-20"
                 placeholder="Such as mental health, relationship,physical health, anything you could think of!"
                 value={textareaInput}
                 onChange={handleChange}
