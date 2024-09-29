@@ -507,6 +507,26 @@ def get_roadmap():
     except Exception as e:
         logger.error(f"Error retrieving roadmap data: {str(e)}")
         return jsonify({'error': str(e)}), 500
+    
+@app.route('/api/get_username', methods=['GET'])
+def get_username():
+    try:
+        # Retrieve the roadmap document from Firestore
+        doc_ref = db.collection('Roadmap').document('map')
+        doc = doc_ref.get()
+        if not doc.exists:
+            return jsonify({'error': 'No roadmap found in Firestore.'}), 404
+
+        existing_data = doc.to_dict()
+        existing_roadmap = existing_data.get('roadmap', [])
+        name = existing_data.get('Name')
+
+        # Return the roadmap data as a JSON response
+        return jsonify({'Name': name}), 200
+
+    except Exception as e:
+        logger.error(f"Error retrieving roadmap data: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)

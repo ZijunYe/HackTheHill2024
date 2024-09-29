@@ -49,6 +49,11 @@ export default function Home() {
           <h1 className="font-pixelify text-8xl sm:text-8xl text-center text-black pt-10">
             PAWGRESS
           </h1>
+          <img
+    src="/images/paw.png"
+    className="w-20 h-auto mt-4" // Adjust size and margin as needed
+    alt="Paw"
+  />
 
           <div className="flex flex-col items-center pt-10">  
               <input
