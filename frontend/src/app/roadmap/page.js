@@ -27,7 +27,7 @@ export default function RoadMap() {
     <div className="flex flex-row min-h-screen">
       <Score></Score>
       <RoadAnimation></RoadAnimation>
-      <h1 className="text-6xl mr-10 W-20">Hello,{username}</h1>
+      <h1 className="text-6xl mr-10 W-20 text-right">Hello<br/>{username}</h1>
       <IconLinks></IconLinks>
     </div>
   );
