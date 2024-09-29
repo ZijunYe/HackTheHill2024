@@ -32,9 +32,10 @@ export default function Home() {
     setGoalDuration(duration); // Save goal duration
     setStep(3); // Move to GeneratingPlan step
   };
-
+  const [isModalOpen, setIsModalOpen] = useState(false);
   return (
     <div className="bg-[#FFF3E6] max-h-screen">
+      
       {/* Step 0: Name input */}
       {step === 0 && (
         <div className="border-black border-8 rounded-xl grid p-64 items-center justify-items-center max-h-screen">
@@ -47,7 +48,7 @@ export default function Home() {
             Self Improvement
           </h1>
 
-          <div className="flex flex-col items-center pt-10">
+          <div className="flex flex-col items-center pt-10">  
               <input
                 type="text"
                 name="username"

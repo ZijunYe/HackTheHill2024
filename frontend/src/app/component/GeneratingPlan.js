@@ -1,20 +1,3 @@
-// export default function GeneratingPlan({ name }) {
-//     return (
-//       <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8eee4]">
-//         <h1 className="font-pixelify text-6xl text-black">Hold On</h1>
-//         <h2 className="font-pixelify text-6xl text-black mt-4">{name}</h2>
-  
-//         <div className="mt-12">
-//           <img src="/images/house.gif" alt="Pixel House" className="w-96 h-96" />
-//         </div>
-  
-//         <p className="font-pixelify text-2xl text-black mt-8">We are generating your Plan~</p>
-//       </div>
-//     );
-//   }
-  
-
-
 import { useState,useEffect } from "react";
 import Link from 'next/link';
 
@@ -92,22 +75,19 @@ export default function GeneratingPlan({ name }) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8eee4]">
       {isLoading ? (
-        // <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8eee4] animate-moveIn">
-        //   <h1 className="font-pixelify text-6xl text-black">Hold On</h1>
-        //   <h2 className="font-pixelify text-6xl text-black mt-4">{name}</h2>
-        //   <div className="mt-12">
-        //     <img src="/images/house.gif" alt="Pixel House" className="w-60 h-auto" />
-        //   </div>
-        //   <p className="font-mono  text-3xl text-black mt-8">We are generating your Plan~</p>
-           <PuppySelection onPuppySelect={handlePuppySelect} /> 
-        // </div>
+        <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8eee4] animate-moveIn">
+          <h1 className="font-pixelify text-8xl text-black">Hold On</h1>
+          <h2 className="font-pixelify text-8xl text-black mt-4">{name}</h2>
+          <div className="mt-16">
+            <img src="/images/house.gif" alt="Pixel House" className="w-60 h-auto" />
+          </div>
+          <p className="font-mono  text-3xl text-black mt-8">We are generating your Plan~</p>
+        </div>
       ) : (
         // Render PuppySelection if data is not null
         data ? (
-          // <PuppySelection onPuppySelect={handlePuppySelect} />
-          <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8eee4]">
-            <h1>yes</h1>
-        </div>
+          <PuppySelection onPuppySelect={handlePuppySelect} />
+        
         ) : (
           // Render another screen if no data is available
           <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8eee4] animate-moveIn">
