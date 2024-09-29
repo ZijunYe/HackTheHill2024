@@ -61,16 +61,6 @@ Please generate a roadmap in JSON format. The JSON should be an array where each
 - Include reputable and relevant resource links.
 """
 
-# def calculate_points(difficulty_level):
-#     if difficulty_level.lower() == 'easy':
-#         return 1  # Assign low points for easy tasks
-#     elif difficulty_level.lower() == 'medium':
-#         return 4  # Assign medium points for medium tasks
-#     elif difficulty_level.lower() == 'hard':
-#         return 7  # Assign high points for hard tasks
-#     else:
-#         return 0  # Default to 0 points if difficulty is unknown
-
 def calculate_reward_points():
     try:
         # Retrieve the existing roadmap document
@@ -180,8 +170,13 @@ Generate a roadmap in JSON format, where the JSON is an array and each element c
         raw_content = response.choices[0].message.content
         
         # Remove any markdown formatting (if necessary)
-        cleaned_content = raw_content.strip('```json').strip('```').strip()
-        # Parse the cleaned content as JSON
+        raw_content = response.choices[0].message.content.strip()
+        
+        # Clean the content to remove any unwanted formatting or markdown
+        cleaned_content = raw_content.replace('```json','').replace('```','')
+        start_idx = cleaned_content.find('[')
+        end_idx = cleaned_content.rfind(']') + 1
+        cleaned_content = cleaned_content[start_idx:end_idx]        # Parse the cleaned content as JSON
         roadmap = json.loads(cleaned_content)
         for task in roadmap:
             if 'Points' not in task:
@@ -198,7 +193,7 @@ Generate a roadmap in JSON format, where the JSON is an array and each element c
             'Gender': gender,
             'TimeSpan': time_span,
             'roadmap': roadmap,  # Include the generated roadmap
-            'reward points': 0
+            'RewardPoints': 0
         }
         # Store the JSON directly into Firestore
         doc_ref = db.collection('Roadmap').document('map')
@@ -334,9 +329,9 @@ def update_roadmap():
             return jsonify({'error': 'Incomplete user data or roadmap in Firestore.'}), 400
 
         # Log the existing roadmap and user information
-        logger.info('Existing roadmap: %s', existing_roadmap)
-        logger.info('User details - Goal: %s, DifficultyLevel: %s, Age: %s, Gender: %s, TimeSpan: %s', 
-                    goal, difficulty_level, age, gender, time_span)
+        # logger.info('Existing roadmap: %s', existing_roadmap)
+        # logger.info('User details - Goal: %s, DifficultyLevel: %s, Age: %s, Gender: %s, TimeSpan: %s', 
+                    # goal, difficulty_level, age, gender, time_span)
 
         # Construct the prompt with the existing roadmap and feedback
         user_prompt = f"""
@@ -381,7 +376,7 @@ def update_roadmap():
                 }
             ],
             temperature=1,
-            max_tokens=2048,
+            max_tokens=4096,
             top_p=1,
             frequency_penalty=0,
             presence_penalty=0,
@@ -391,13 +386,17 @@ def update_roadmap():
         raw_content = response.choices[0].message.content.strip()
         
         # Clean the content to remove any unwanted formatting or markdown
-        cleaned_content = raw_content.replace('```json', '').replace('```', '').strip()
-        # Parse the cleaned JSON content into a dictionary
+        cleaned_content = raw_content.replace('```json','').replace('```','')
+        start_idx = cleaned_content.find('[')
+        end_idx = cleaned_content.rfind(']') + 1
+        cleaned_content = cleaned_content[start_idx:end_idx]
         updated_roadmap = json.loads(cleaned_content)
-        print(update_roadmap)
+        for task in updated_roadmap:
+            task['Status'] = 'undone'
+        print("update_roadmap", update_roadmap)
         # Update the existing Firestore document with the new roadmap
         doc_ref.update({'roadmap': updated_roadmap})
-
+        calculate_reward_points()
         # Return the updated roadmap in the response
         return jsonify({'updated_roadmap': updated_roadmap}), 200
     
@@ -412,7 +411,7 @@ def update_roadmap():
 @app.route('/adjust_subsequent_tasks', methods=['POST'])
 def adjust_subsequent_tasks():
     data = request.get_json()
-    task_index = data.get('task_index')
+    task_index = data.get('Index')
 
     doc_ref = db.collection('Roadmap').document('map')
     doc = doc_ref.get()
@@ -497,6 +496,7 @@ Generate the adjusted tasks in JSON format, ensuring:
     except Exception as e:
         logger.error(f"Error: {str(e)}")
         # Handle the error as needed
+        calculate_reward_points()
 
     return roadmap
 
@@ -565,16 +565,21 @@ def update_task_status():
 
         # Update the status of the task at the specified index
         task = roadmap_data[task_index - 1]  # Since the index is 1-based
-        task['Status'] = 'finished'
+        if task['Status'] == 'finished':
+            task['Status'] = 'undone'
+        elif task['Status'] == 'undone':
+            task['Status'] = 'finished'
 
         # Update the roadmap document in Firestore
         doc_ref.update({'roadmap': roadmap_data})
-
+        calculate_reward_points()
         return jsonify({'message': f'Task at index {task_index} updated to finished successfully', 'updated_task': task}), 200
 
     except Exception as e:
         logger.error(f"Error updating task status: {str(e)}")
         return jsonify({'error': str(e)}), 500
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
