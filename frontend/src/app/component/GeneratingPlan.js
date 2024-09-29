@@ -8,7 +8,6 @@ function PuppySelection() {
   const puppies = [
     { id: 1, name: "rabbit", img: "/images/rabbit.gif" },
     { id: 2, name: "doggy", img: "/images/doggy.gif" },
-    // { id: 3, name: "cat1", img: "/images/cat1.png" },
   ];
 
   const handlePuppySelect = (id) => {
@@ -54,7 +53,8 @@ function PuppySelection() {
   );
 }
 
-export default function GeneratingPlan({ name }) {
+export default function GeneratingPlan({ name , goal, duration, difficulty }) {
+  console.log(name, goal,duration,difficulty); 
   const [isLoading, setIsLoading] = useState(true); // Manage loading state
   const [data, setData] = useState(null); // Manage the data from the backend
 

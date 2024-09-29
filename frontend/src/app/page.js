@@ -10,6 +10,8 @@ export default function Home() {
   const [name, setName] = useState(""); // State to store the user's name
   const [textareaInput, setTextareaInput] = useState(""); // State to store the textarea input from SecondMain
   const [goalDuration, setGoalDuration] = useState(""); // State to store the goal duration from ThirdMain
+  const [difficultyLevel, setDifficulty] = useState(""); // State to store the goal duration from ThirdMain
+
 
   // Handle when the user submits their name (First Step)
   const handleNameSubmit = (e) => {
@@ -28,8 +30,9 @@ export default function Home() {
   };
 
   // Handle submission from ThirdMain (goal duration) (Third Step)
-  const handleThirdMainSubmit = (duration) => {
-    setGoalDuration(duration); // Save goal duration
+  const handleThirdMainSubmit = (duration,difficulty) => {
+    setGoalDuration(duration);
+    setDifficulty(difficulty);  // Save goal duration
     setStep(3); // Move to GeneratingPlan step
   };
   return (
@@ -84,7 +87,7 @@ export default function Home() {
       )}
 
       {/* Step 3: GeneratingPlan */}
-      {step === 3 && <GeneratingPlan name={name}  />} {/* Pass the name to GeneratingPlan */}
+      {step === 3 && <GeneratingPlan name={name} goal={textareaInput} duration={goalDuration} difficulty={difficultyLevel} />} {/* Pass the name to GeneratingPlan */}
     </div>
   );
 }

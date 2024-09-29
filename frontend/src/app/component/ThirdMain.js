@@ -134,8 +134,6 @@ export default function ThirdMain({ name, textareaInput, onSubmit }) {
               />
             ))}
         </div>
-
-        {/* Right side trees */}
         <div className="flex space-x-2">
           {Array(rightVisibleTrees)
             .fill(null)
