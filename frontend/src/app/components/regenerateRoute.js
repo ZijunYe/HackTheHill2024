@@ -26,7 +26,8 @@ export default function RenerateRoute({ isOpen, onClose }) {
         setMessage(data.message);
         console.log(response);
         // Navigate to /roadmap page
-        router.push("/roadmap");
+        router.refresh();
+        window.location.reload();
       } else if (data.errors) {
         setErrors(data.errors);
         setMessage(data.message);

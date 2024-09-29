@@ -243,7 +243,6 @@ def update_roadmap():
             return jsonify({'error': 'Incomplete user data or roadmap in Firestore.'}), 400
 
         user_prompt = f"""
-        The user has an existing roadmap to achieve the goal: **{goal}**.
         Here is the current roadmap:
 
         {json.dumps(existing_roadmap, indent=2)}
@@ -253,12 +252,11 @@ def update_roadmap():
         Please generate a personalized roadmap to help me achieve my goal.
         
         - **Name**: {name}
-        - **Goal**: {goal}
         - **DifficultyLevel**: {difficulty_level}
         - **TimeSpan**: {time_span}
 
 
-        Please update the roadmap based on the feedback. Generate the updated roadmap in JSON format, ensuring the same structure and but add or change the content appropriate to the feedback :
+        Please update or change the roadmap based on the feedback. Generate the updated roadmap in JSON format, ensuring the same structure and add or change the content appropriate to the feedback :
 
         - **Name**: Name of the user.
         - **Task**: A specific action or activity for the updated roadmap.
