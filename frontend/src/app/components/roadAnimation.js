@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import TaskCard from "../component/TaskCard";
 export default function RoadAnimation() {
@@ -15,16 +15,51 @@ export default function RoadAnimation() {
   ];
 
   // State Variables
-  const [position, setPosition] = useState({ left: 0, top: 0 }); // Rabbit's position
+  const [position, setPosition] = useState({ left: 30, top: 0 }); // Rabbit's position
   const [currentMovementIndex, setCurrentMovementIndex] = useState(0); // Index in movementSequence
   const [stepsTaken, setStepsTaken] = useState(0); // Steps taken in current direction
   const [isMoving, setIsMoving] = useState(false); // Movement state
 
   // Handler for button press to move the rabbit
+  useEffect(() => {
+    const idleImage = new Image();
+    idleImage.src = "/images/rabbit.gif";
+
+    const walkingImage = new Image();
+    walkingImage.src = "/images/moving/rabbit_walking.gif";
+
+    const walkingDownImage = new Image();
+    walkingDownImage.src = "/images/moving/rabbit_walking_down.gif";
+  }, []);
+
+  // Helper function to get the previous movement direction
+  const getPreviousDirection = () => {
+    const previousIndex =
+      (currentMovementIndex - 1 + movementSequence.length) %
+      movementSequence.length;
+    return movementSequence[previousIndex].direction;
+  };
+
+  // Determine the image source based on movement state and direction
+  const getImageSource = () => {
+    if (isMoving) {
+      const prevDirection = getPreviousDirection();
+      if (prevDirection === "down") {
+        return "/images/moving/rabbit_walking_down.gif";
+      } else {
+        return "/images/moving/rabbit_walking.gif";
+      }
+    } else {
+      return "/images/rabbit.gif";
+    }
+  };
+
+  // Handler for button press to move the rabbit
   const handleMove = () => {
+    if (isMoving) return; // Prevent multiple simultaneous moves
+
     const currentMovement = movementSequence[currentMovementIndex];
-    const direction = currentMovement;
-    const steps = 1;
+    const { direction, steps } = currentMovement;
 
     // Calculate new position based on direction
     let newLeft = position.left;
@@ -32,19 +67,17 @@ export default function RoadAnimation() {
 
     switch (direction) {
       case "down":
-        newTop += svgSize * 3;
+        newTop += svgSize;
         break;
       case "right":
-        newLeft += svgSize * 4;
+        newLeft += svgSize;
         break;
       case "left":
-        newLeft -= svgSize * 5;
+        newLeft -= svgSize;
         break;
-
       default:
         break;
     }
-
     // Boundary Checks to prevent moving out of grid
 
     // Update Position
@@ -78,21 +111,17 @@ export default function RoadAnimation() {
 
         {/* Rabbit Image */}
         <motion.img
-          src={
-            isMoving
-              ? "/images/moving/rabbit_walking.gif"
-              : "/images/rabbit.gif"
-          }
+          src={getImageSource()}
           width={svgSize}
           height={svgSize}
           className="absolute z-10"
           style={{
-            left: `${position.left + 20}px`,
-            top: `${position.top + 50}px`,
+            left: `${position.left}px`,
+            top: `${position.top}px`,
             transform:
-              movementSequence[currentMovementIndex].direction === "left"
-                ? "scaleX(-1)"
-                : "scaleX(1)", // Flip horizontally when moving left
+              getPreviousDirection() === "right" ? "scaleX(1)" : "scaleX(-1)",
+
+            // Flip horizontally when moving left
           }}
           animate={{
             left: `${position.left + 20}px`,
@@ -126,8 +155,8 @@ export default function RoadAnimation() {
                   <path
                     d={`M 0 30 Q 0 0 30 0 H ${
                       svgSize - 30
-                    } Q ${svgSize} 0 ${svgSize} 30 V ${svgSize} H 0 Z`}
-                    style={{ stroke: "white", fill: "rgb(255, 218, 179)" }}
+                    } Q ${svgSize} 0 ${svgSize} 30 V ${svgSize} H 0 Z`} //255, 218, 179
+                    style={{ stroke: "white", fill: "black" }}
                   />
                 </svg>
               </div>
@@ -167,7 +196,7 @@ export default function RoadAnimation() {
                             fill="white"
                             style={{
                               stroke: "white",
-                              fill: "rgb(255, 218, 179)",
+                              fill: "black",
                             }}
                           />
                         ) : index === svgCount_horz - 1 ? (
@@ -192,7 +221,7 @@ export default function RoadAnimation() {
                             width={svgSize}
                             height={svgSize}
                             style={{ stroke: "white" }}
-                            fill="rgb(255, 218, 179)"
+                            fill="black"
                           />
                         )}
                       </svg>
