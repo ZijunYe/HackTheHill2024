@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Link from 'next/link';
 
 // Puppy selection component
-function PuppySelection({ onPuppySelect }) {
+function PuppySelection({ onPuppySelect, name}) {
   const [selectedPuppy, setSelectedPuppy] = useState(null);
 
   const puppies = [
@@ -37,7 +37,8 @@ function PuppySelection({ onPuppySelect }) {
       </div>
 
       {selectedPuppy ? (
-        <Link href="/roadmap">
+        // <Link href="/roadmap">
+        <Link href={`/roadmap?username=${encodeURIComponent(name)}`}>
           <button className="mt-12 px-10 py-4 bg-red-600 text-white font-pixelify rounded-full text-3xl">
             Start Plan
           </button>
@@ -116,7 +117,7 @@ export default function GeneratingPlan({ name, goal, difficulty, duration }) {
         </div>
       ) : (
         data ? (
-          <PuppySelection onPuppySelect={handlePuppySelect} />
+          <PuppySelection onPuppySelect={handlePuppySelect} name={data.name} />
         ) : (
           <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8eee4] animate-moveIn">
             <h1 className="font-pixelify text-6xl text-black">No Plan Available</h1>

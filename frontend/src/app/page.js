@@ -46,14 +46,17 @@ export default function Home() {
             <img className="w-80 h-80 relative z-20" src="/images/mountain.gif" alt="Mountain" />
           </div>
 
+          <div className="flex flex-row">
           <h1 className="font-pixelify text-8xl sm:text-8xl text-center text-black pt-10">
             PAWGRESS
           </h1>
           <img
-    src="/images/paw.png"
-    className="w-20 h-auto mt-4" // Adjust size and margin as needed
-    alt="Paw"
-  />
+            src="/images/paw.png"
+            className="w-24 h-24 mt-10 ml-4" // Adjust size and margin as needed
+            alt="Paw"
+          />
+          </div>
+    
 
           <div className="flex flex-col items-center pt-10">  
               <input
