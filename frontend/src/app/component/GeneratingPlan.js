@@ -1,8 +1,8 @@
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import Link from 'next/link';
 
 // Puppy selection component
-function PuppySelection() {
+function PuppySelection({ onPuppySelect }) {
   const [selectedPuppy, setSelectedPuppy] = useState(null);
 
   const puppies = [
@@ -12,6 +12,7 @@ function PuppySelection() {
 
   const handlePuppySelect = (id) => {
     setSelectedPuppy(id); // Set the selected puppy's ID
+    onPuppySelect(id); // Pass the selected puppy ID to the parent
   };
 
   return (
@@ -53,23 +54,48 @@ function PuppySelection() {
   );
 }
 
-export default function GeneratingPlan({ name , goal, duration, difficulty }) {
-  console.log(name, goal,duration,difficulty); 
+export default function GeneratingPlan({ name, goal, difficulty, duration }) {
   const [isLoading, setIsLoading] = useState(true); // Manage loading state
   const [data, setData] = useState(null); // Manage the data from the backend
+  const [error, setError] = useState(null); // Manage error state
 
   useEffect(() => {
-    // Mocked data fetch: replace with actual API call
-    setTimeout(() => {
-      // Simulate getting data after 2 seconds
-      const fetchedData = null; // Change this to simulate real data or null
-      setData(fetchedData); // Set fetched data
-      setIsLoading(true); // Set loading to false after fetching
-    }, 6000);
-  }, []);
+    const postRoadmapData = async () => {
+      try {
+        const response = await fetch('/api/generate_roadmap', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            Goal: goal,
+            Name: name,
+            DifficultyLevel: difficulty,
+            TimeSpan: duration,
+          }),
+        });
+
+        if (response.ok) {
+          const fetchedData = await response.json(); // Parse the JSON from the response
+          setData(fetchedData); // Set the fetched data
+        } else {
+          console.error('Error posting data:', response.statusText);
+          setError('Failed to generate the roadmap.');
+        }
+      } catch (error) {
+        console.error('Error during POST:', error);
+        setError('Error occurred during the request.');
+      } finally {
+        setIsLoading(false); // Stop loading after the request
+      }
+    };
+
+    postRoadmapData(); // Call the POST function
+  }, [goal, name, difficulty, duration]); // Dependency array includes the props to trigger the POST request
 
   const handlePuppySelect = (puppyId) => {
     console.log("Puppy selected with ID:", puppyId);
+    // Do something when a puppy is selected, e.g., send data to the backend
   };
 
   return (
@@ -81,15 +107,17 @@ export default function GeneratingPlan({ name , goal, duration, difficulty }) {
           <div className="mt-16">
             <img src="/images/house.gif" alt="Pixel House" className="w-60 h-auto" />
           </div>
-          <p className="font-mono  text-3xl text-black mt-8">We are generating your Plan~</p>
+          <p className="font-mono text-3xl text-black mt-8">We are generating your Plan~</p>
+        </div>
+      ) : error ? (
+        <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8eee4] animate-moveIn">
+          <h1 className="font-pixelify text-6xl text-black">Error</h1>
+          <p className="font-pixelify text-2xl text-black mt-8">{error}</p>
         </div>
       ) : (
-        // Render PuppySelection if data is not null
         data ? (
           <PuppySelection onPuppySelect={handlePuppySelect} />
-        
         ) : (
-          // Render another screen if no data is available
           <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8eee4] animate-moveIn">
             <h1 className="font-pixelify text-6xl text-black">No Plan Available</h1>
             <p className="font-pixelify text-2xl text-black mt-8">Please try again later.</p>

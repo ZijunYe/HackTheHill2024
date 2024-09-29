@@ -88,18 +88,17 @@ def calculate_reward_points():
         logger.error(f"Error calculating reward points: {str(e)}")
         return 0  # Return 0 in case of any errors
 
-@app.route('/generate_roadmap', methods=['POST'])
+@app.route('/api/generate_roadmap', methods=['POST'])
 def generate_roadmap():
     data = request.get_json()
     goal = data.get('Goal')
+    name = data.get('Name')
     difficulty_level = data.get('DifficultyLevel')
-    age = data.get('Age')
-    gender = data.get('Gender')
     time_span = data.get('TimeSpan')
 
     # Validate inputs
-    if not all([goal, difficulty_level, age, gender, time_span]):
-        return jsonify({'error': 'All fields (Goal, DifficultyLevel, Age, Gender, TimeSpan) are required.'}), 400
+    if not all([name, goal, difficulty_level, time_span]):
+        return jsonify({'error': 'All fields (Name, Goal, DifficultyLevel, Age, Gender, TimeSpan) are required.'}), 400
 
     logger.info('Generating roadmap for goal: %s', goal)
 
@@ -107,14 +106,14 @@ def generate_roadmap():
     user_prompt = f"""
 Please generate a personalized roadmap to help me achieve my goal.
 
+- **Name**: {name}
 - **Goal**: {goal}
 - **DifficultyLevel**: {difficulty_level}
-- **Age**: {age}
-- **Gender**: {gender}
 - **TimeSpan**: {time_span}
 
 Generate a roadmap in JSON format, where the JSON is an array and each element contains the following fields:
 
+- **Name**: Name of the user.
 - **Task**: A specific action or activity I should perform.
 - **Days**: The number of days allocated to complete the task.
 - **Index**: The index of task.
@@ -185,15 +184,16 @@ Generate a roadmap in JSON format, where the JSON is an array and each element c
                 
         for task in roadmap:
             task["Status"] = "undone"
-        
+        current_task = roadmap[0]["Index"] if roadmap else None
+
         document_data = {
+            'Name': name,
             'Goal': goal,
             'DifficultyLevel': difficulty_level,
-            'Age': age,
-            'Gender': gender,
             'TimeSpan': time_span,
             'roadmap': roadmap,  # Include the generated roadmap
-            'RewardPoints': 0
+            'RewardPoints': 0,
+            "CurrentTask": current_task
         }
         # Store the JSON directly into Firestore
         doc_ref = db.collection('Roadmap').document('map')
@@ -211,93 +211,8 @@ import json
 import logging
 
 logger = logging.getLogger(__name__)
-
-# def update_roadmap(existing_roadmap, index, feedback, data): # 
-#     # Validate the index
-#     if index < 1 or index > len(existing_roadmap):
-#         raise ValueError('Invalid index provided.')  # Raise an exception
-
-#     # Get feedback and goal from the request
-#     feedback = feedback
-#     goal = data['Goal']
-#     age = data['Age']
-#     gender = data['Gender']
-#     difficulty_level = data["difficulty_level"] 
-#     time_span = data['time_span']  
     
-#     logger.info('Updating roadmap for goal: %s based on feedback: %s', goal, feedback)
-
-#     # Prepare the user prompt for OpenAI
-#     user_prompt = f"""
-# The user has an existing roadmap to achieve the goal: **{goal}**.
-# Here is the current roadmap:
-
-# {json.dumps(existing_roadmap, indent=2)}
-
-# The user provided the following feedback to improve or modify the roadmap:\n- **Feedback**: {feedback}
-
-# Please generate a personalized roadmap to help me achieve my goal.
-
-# - **Goal**: {goal}
-# - **DifficultyLevel**: {difficulty_level}
-# - **Age**: {age}
-# - **Gender**: {gender}
-# - **TimeSpan**: {time_span}
-
-
-# Please update the roadmap based on the feedback. Generate the updated roadmap in JSON format, ensuring the same structure and keep the exisitng task from and generate the future task based on the last :
-
-# - **Task**: A specific action or activity for the updated roadmap.
-# - **Days**: The number of days allocated to complete the task.
-# - **Index**: The index of task.
-# - **Description**: A detailed explanation of the task and how it contributes to the goal.
-# - **ResourceLinks**: An array of relevant resource links to assist in completing the task.
-
-# Ensure that the roadmap is well-structured and aligns with the feedback provided by the user.
-# """
-
-#     try:
-#         # Use the OpenAI client to generate a response
-#         response = client.chat.completions.create(
-#             model="gpt-4o",
-#             messages=[
-#                 {
-#                     "role": "system",
-#                     "content": SYSTEM_PROMPT
-#                 },
-#                 {
-#                     "role": "user",
-#                     "content": user_prompt
-#                 }
-#             ],
-#              temperature=1,
-#         max_tokens=2048,
-#         top_p=1,
-#         frequency_penalty=0,
-#         presence_penalty=0,
-#         )
-        
-#         # Extract and process the content from OpenAI's response
-#         raw_content = response.choices[0].message.content
-#         cleaned_content = raw_content.strip('```json').strip('```').strip()
-#         print("\nCLEANED CONTENT")
-#         print(cleaned_content)
-#         # Parse the cleaned JSON content
-#         new_roadmap_part = json.loads(cleaned_content)
-
-#         # Combine the existing roadmap with the new tasks
-#         updated_roadmap = existing_roadmap[:index-1] + new_roadmap_part + existing_roadmap[index-1:]
-#         print(updated_roadmap)
-#         # Return the updated roadmap
-#         return updated_roadmap  
-#     except json.JSONDecodeError as e:
-#         logger.error(f"JSON decoding error: {str(e)}")
-#         raise ValueError('Failed to parse the OpenAI response as JSON.')  # Raise an exception
-#     except Exception as e:
-#         logger.error(f"Error: {str(e)}")
-#         raise  # Raise the error for handling elsewhere
-    
-@app.route('/update_roadmap', methods=['POST'])
+@app.route('/api/update_roadmap', methods=['POST'])
 def update_roadmap():
     # Get the feedback from the request body
     data = request.get_json()
@@ -318,22 +233,15 @@ def update_roadmap():
 
         existing_data = doc.to_dict()
         existing_roadmap = existing_data.get('roadmap', [])
+        name = existing_data.get('Name')
         goal = existing_data.get('Goal')
         difficulty_level = existing_data.get('DifficultyLevel')
-        age = existing_data.get('Age')
-        gender = existing_data.get('Gender')
         time_span = existing_data.get('TimeSpan')
 
         # Validate that all necessary information is available
-        if not all([goal, difficulty_level, age, gender, time_span, existing_roadmap]):
+        if not all([name, goal, difficulty_level, time_span, existing_roadmap]):
             return jsonify({'error': 'Incomplete user data or roadmap in Firestore.'}), 400
 
-        # Log the existing roadmap and user information
-        # logger.info('Existing roadmap: %s', existing_roadmap)
-        # logger.info('User details - Goal: %s, DifficultyLevel: %s, Age: %s, Gender: %s, TimeSpan: %s', 
-                    # goal, difficulty_level, age, gender, time_span)
-
-        # Construct the prompt with the existing roadmap and feedback
         user_prompt = f"""
         The user has an existing roadmap to achieve the goal: **{goal}**.
         Here is the current roadmap:
@@ -343,16 +251,16 @@ def update_roadmap():
         The user provided the following feedback to improve or modify the roadmap:\n- **Feedback**: {feedback}
 
         Please generate a personalized roadmap to help me achieve my goal.
-
+        
+        - **Name**: {name}
         - **Goal**: {goal}
         - **DifficultyLevel**: {difficulty_level}
-        - **Age**: {age}
-        - **Gender**: {gender}
         - **TimeSpan**: {time_span}
 
 
         Please update the roadmap based on the feedback. Generate the updated roadmap in JSON format, ensuring the same structure and keep the exisitng task from and generate the future task based on the last :
 
+        - **Name**: Name of the user.
         - **Task**: A specific action or activity for the updated roadmap.
         - **Days**: The number of days allocated to complete the task.
         - **Index**: The index of task.
@@ -393,6 +301,7 @@ def update_roadmap():
         updated_roadmap = json.loads(cleaned_content)
         for task in updated_roadmap:
             task['Status'] = 'undone'
+        current_task = updated_roadmap[0] if updated_roadmap else None
         print("update_roadmap", update_roadmap)
         # Update the existing Firestore document with the new roadmap
         doc_ref.update({'roadmap': updated_roadmap})
@@ -408,7 +317,7 @@ def update_roadmap():
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/adjust_subsequent_tasks', methods=['POST'])
+@app.route('/api/adjust_subsequent_tasks', methods=['POST'])
 def adjust_subsequent_tasks():
     data = request.get_json()
     task_index = data.get('Index')
@@ -515,7 +424,7 @@ Provide just the difficulty level.
 
     try:
         response = client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-4o",
             messages=[
                 {"role": "system", "content": "You are an assistant that infers difficulty levels based on task modifications."},
                 {"role": "user", "content": analysis_prompt}
@@ -540,7 +449,7 @@ Provide just the difficulty level.
 
     return inferred_difficulty
 
-@app.route('/update_task_status', methods=['PATCH'])
+@app.route('/api/update_task_status', methods=['PATCH'])
 def update_task_status():
     try:
         # Retrieve the request data
@@ -558,20 +467,21 @@ def update_task_status():
             return jsonify({'error': 'Roadmap document not found.'}), 404
 
         roadmap_data = doc.to_dict().get('roadmap', [])
-
-        # Check if the task index is within the bounds of the roadmap
-        if task_index < 1 or task_index > len(roadmap_data):
-            return jsonify({'error': 'Task index is out of bounds.'}), 400
+        current_task = doc.to_dict().get('CurrentTask')
 
         # Update the status of the task at the specified index
-        task = roadmap_data[task_index - 1]  # Since the index is 1-based
+        task = roadmap_data[task_index]  # Since the index is 1-based
         if task['Status'] == 'finished':
             task['Status'] = 'undone'
         elif task['Status'] == 'undone':
             task['Status'] = 'finished'
-
+        current_task = current_task + 1
+        # Check if the task index is within the bounds of the roadmap
+        if current_task < 1 or current_task > len(roadmap_data):
+            return jsonify({'error': 'Task index is out of bounds.'}), 400
+        
         # Update the roadmap document in Firestore
-        doc_ref.update({'roadmap': roadmap_data})
+        doc_ref.update({'roadmap': roadmap_data, 'CurrentTask': current_task})
         calculate_reward_points()
         return jsonify({'message': f'Task at index {task_index} updated to finished successfully', 'updated_task': task}), 200
 
@@ -579,7 +489,26 @@ def update_task_status():
         logger.error(f"Error updating task status: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/get_roadmap', methods=['GET'])
+def get_roadmap():
+    try:
+        # Retrieve the roadmap document from Firestore
+        doc_ref = db.collection('Roadmap').document('map')
+        doc = doc_ref.get()
 
+        # Check if the document exists
+        if not doc.exists:
+            return jsonify({'error': 'No roadmap found in Firestore.'}), 404
+
+        # Get the roadmap data as a dictionary
+        roadmap_data = doc.to_dict()
+
+        # Return the roadmap data as a JSON response
+        return jsonify({'roadmap_data': roadmap_data}), 200
+
+    except Exception as e:
+        logger.error(f"Error retrieving roadmap data: {str(e)}")
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
