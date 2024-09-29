@@ -6,7 +6,10 @@ export default function RoadAnimation() {
   const svgCount_horz = 5; // Number of times the pattern repeats
   const svgCount_vert = 3; // Vertical loop length after the first small loop
   const svgSize = 90;
-
+  const [isRabitFirstBlock, setisRabitFirstBlock] = useState(true);
+  const [data, setData] = useState(null);
+  const [roadMap, setRoadMap] = useState(null);
+  const [loading, setLoading] = useState(true);
   const movementSequence = [
     { direction: "down", steps: 1 },
     { direction: "right", steps: 1 },
@@ -64,16 +67,22 @@ export default function RoadAnimation() {
     // Calculate new position based on direction
     let newLeft = position.left;
     let newTop = position.top;
-
+    var speed = 4;
+    if (isRabitFirstBlock && direction === "down") {
+      speed = 1;
+      setisRabitFirstBlock(false);
+    } else {
+      speed = 4;
+    }
     switch (direction) {
       case "down":
-        newTop += svgSize;
+        newTop += svgSize * speed;
         break;
       case "right":
-        newLeft += svgSize;
+        newLeft += svgSize * speed;
         break;
       case "left":
-        newLeft -= svgSize;
+        newLeft -= svgSize * speed;
         break;
       default:
         break;
@@ -97,9 +106,25 @@ export default function RoadAnimation() {
 
   let cumulativeIndex = 0; // Initialize cumulativeIndex
 
+  useEffect(() => {
+    // Fetch data on the client side
+    async function fetchData() {
+      const res = await fetch("/api/get_roadmap ");
+      const result = await res.json();
+      console.log(result["roadmap_data"]["roadmap"]);
+      setData(result[0]);
+      setRoadMap(result["roadmap_data"]["roadmap"]);
+      setLoading(false);
+    }
+
+    fetchData();
+  }, []);
+
+  if (loading) return <p>Loading...</p>;
+
   return (
     <main className="pl-20 min-h-screen w-full">
-      <div>
+      <div className="">
         <button
           onClick={handleMove}
           className="mb-6 px-6 py-3 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
@@ -128,52 +153,71 @@ export default function RoadAnimation() {
             top: `${position.top + 50}px`,
           }}
           transition={{
-            type: "spring",
-            stiffness: 300, // Increased from 0 to 300
-            damping: 200, // Reduced from 100 to 20 for smoother animation
+            ease: "linear",
+            duration: 0.001, // Increased from 0 to 300
+            x: { duration: 1 }, // Reduced from 100 to 20 for smoother animation
           }}
           onAnimationStart={() => setIsMoving(true)}
           onAnimationComplete={() => setIsMoving(false)}
         />
 
         <div>
-          {/* First Vertical Loop (custom, length 1) */}
-          {Array.from({ length: 1 }).map((_, index) => {
-            const delay = 250 * cumulativeIndex;
-            cumulativeIndex += 1;
+          <div className="flex flex-col w-full ">
+            {Array.from({ length: 1 }).map((_, index) => {
+              const delay = 250 * cumulativeIndex;
+              cumulativeIndex += 1;
+              const chooseRandomTileType = () => {
+                return Math.random() < 0.7 ? "grass" : "dirt"; // 70% chance for grass, 30% for dirt
+              };
 
-            return (
-              <div className="flex flex-col" key={`first-vertical-${index}`}>
-                <svg
-                  className="animate-jump-in animate-once animate-ease-out"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width={svgSize}
-                  height={svgSize}
-                  style={{ animationDelay: `${delay}ms` }}
-                >
-                  {/* Custom SVG for the first vertical block */}
-                  <path
-                    d={`M 0 30 Q 0 0 30 0 H ${
-                      svgSize - 30
-                    } Q ${svgSize} 0 ${svgSize} 30 V ${svgSize} H 0 Z`} //255, 218, 179
-                    style={{ stroke: "white", fill: "black" }}
-                  />
-                </svg>
-              </div>
-            );
-          })}
+              // Set tile color based on type
+              const tileType = chooseRandomTileType();
+              const tileColor = tileType === "grass" ? "#BEDC74" : "#FFEEAD"; // Grass: green, Dirt: brown
+              return (
+                <div className="flex flex-row">
+                  <svg
+                    className="animate-jump-in animate-once animate-ease-out"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width={svgSize}
+                    height={svgSize}
+                    style={{
+                      position: "relative",
+
+                      animationDelay: `${delay}ms`,
+                    }}
+                  >
+                    <rect
+                      width={svgSize}
+                      height={svgSize}
+                      style={{ stroke: "white" }}
+                      fill={tileColor}
+                    />
+                  </svg>
+                </div>
+              );
+            })}
+          </div>
 
           {/* Repeating Pattern */}
-          {Array.from({ length: 2 }).map((_, loopIndex) => (
-            <div key={`pattern-${loopIndex}`}>
+          {roadMap.map((item, index) => (
+            <div>
               {/* Horizontal Loop */}
               <div className="flex flex-row h-full jusitfy-center items-center">
                 {Array.from({ length: svgCount_horz }).map((_, index) => {
                   const delay = 250 * cumulativeIndex;
                   cumulativeIndex += 1;
+                  // Randomly choose between grass (green) or dirt (brown)
+                  const chooseRandomTileType = () => {
+                    return Math.random() < 0.7 ? "grass" : "dirt"; // 70% chance for grass, 30% for dirt
+                  };
+
+                  // Set tile color based on type
+                  const tileType = chooseRandomTileType();
+                  const tileColor =
+                    tileType === "grass" ? "#BEDC74" : "#FFEEAD"; // Grass: green, Dirt: brown
 
                   return (
-                    <div className="" key={`horizontal-${loopIndex}-${index}`}>
+                    <div className="">
                       <svg
                         className="animate-jump-in animate-once animate-ease-out"
                         xmlns="http://www.w3.org/2000/svg"
@@ -193,11 +237,10 @@ export default function RoadAnimation() {
                               V 0
                               Z
                             `}
-                            fill="white"
                             style={{
                               stroke: "white",
-                              fill: "black",
                             }}
+                            fill={tileColor}
                           />
                         ) : index === svgCount_horz - 1 ? (
                           <path
@@ -210,18 +253,17 @@ export default function RoadAnimation() {
                               V 0
                               Z
                             `}
-                            fill="white"
                             style={{
                               stroke: "white",
-                              fill: "rgb(255, 218, 179)",
                             }}
+                            fill={tileColor}
                           />
                         ) : (
                           <rect
                             width={svgSize}
                             height={svgSize}
                             style={{ stroke: "white" }}
-                            fill="black"
+                            fill={tileColor}
                           />
                         )}
                       </svg>
@@ -235,12 +277,16 @@ export default function RoadAnimation() {
                 {Array.from({ length: svgCount_vert }).map((_, index) => {
                   const delay = 250 * cumulativeIndex;
                   cumulativeIndex += 1;
+                  const chooseRandomTileType = () => {
+                    return Math.random() < 0.7 ? "grass" : "dirt"; // 70% chance for grass, 30% for dirt
+                  };
 
+                  // Set tile color based on type
+                  const tileType = chooseRandomTileType();
+                  const tileColor =
+                    tileType === "grass" ? "#BEDC74" : "#FFEEAD"; // Grass: green, Dirt: brown
                   return (
-                    <div
-                      className="flex flex-row"
-                      key={`vertical-${loopIndex}-${index}`}
-                    >
+                    <div className="flex flex-row">
                       <svg
                         className="animate-jump-in animate-once animate-ease-out"
                         xmlns="http://www.w3.org/2000/svg"
@@ -255,17 +301,23 @@ export default function RoadAnimation() {
                         <rect
                           width={svgSize}
                           height={svgSize}
-                          style={{ stroke: "white", fill: "black" }}
+                          style={{ stroke: "white" }}
+                          fill={tileColor}
                         />
                       </svg>
-                      {index === 1 ? (
+                      {index === 0 ? (
                         <div
-                          className=" w-full flex p-100 justify-end animate-jump-in animate-once animate-ease-out "
+                          className="absolute   flex  ml-[500px] w-full animate-jump-in animate-once animate-ease-out "
                           style={{
                             animationDelay: `${delay}ms`,
                           }}
                         >
-                          <TaskCard className=" pl-10  flex " />
+                          <TaskCard
+                            task_description={item["Description"]}
+                            task_id={item["Index"] + 1}
+                            task_duration={item["Days"]}
+                            task_Name={item["Task"]}
+                          />
                         </div>
                       ) : (
                         <></>
@@ -280,17 +332,22 @@ export default function RoadAnimation() {
                 {(() => {
                   const loopStartIndex = cumulativeIndex;
                   const loopLength = svgCount_horz;
+
                   return Array.from({ length: svgCount_horz }).map(
                     (_, index) => {
                       const delay =
                         250 * (loopStartIndex + loopLength - 1 - index); // Reverse delay
                       cumulativeIndex += 1;
+                      const chooseRandomTileType = () => {
+                        return Math.random() < 0.7 ? "grass" : "dirt"; // 70% chance for grass, 30% for dirt
+                      };
 
+                      // Set tile color based on type
+                      const tileType = chooseRandomTileType();
+                      const tileColor =
+                        tileType === "grass" ? "#BEDC74" : "#FFEEAD"; // Grass: green, Dirt: brown
                       return (
-                        <div
-                          className=""
-                          key={`reverse-horizontal-${loopIndex}-${index}`}
-                        >
+                        <div className="">
                           <svg
                             className="animate-jump-in animate-once animate-ease-out"
                             xmlns="http://www.w3.org/2000/svg"
@@ -310,7 +367,10 @@ export default function RoadAnimation() {
                 V 0
                 Z
               `}
-                                style={{ stroke: "white", fill: "black" }}
+                                style={{
+                                  stroke: "white",
+                                }}
+                                fill={tileColor}
                               />
                             ) : index === 0 ? (
                               // First index, special path for top-left corner
@@ -324,14 +384,20 @@ export default function RoadAnimation() {
                 V 30
                 Z
               `}
-                                style={{ stroke: "white", fill: "black" }}
+                                style={{
+                                  stroke: "white",
+                                }}
+                                fill={tileColor}
                               />
                             ) : (
                               // Normal rectangle for other blocks
                               <rect
                                 width={svgSize}
                                 height={svgSize}
-                                style={{ stroke: "white", fill: "black" }}
+                                style={{
+                                  stroke: "white",
+                                }}
+                                fill={tileColor}
                               />
                             )}
                           </svg>
@@ -346,7 +412,14 @@ export default function RoadAnimation() {
                 {Array.from({ length: svgCount_vert }).map((_, index) => {
                   const delay = 250 * cumulativeIndex;
                   cumulativeIndex += 1;
+                  const chooseRandomTileType = () => {
+                    return Math.random() < 0.7 ? "grass" : "dirt"; // 70% chance for grass, 30% for dirt
+                  };
 
+                  // Set tile color based on type
+                  const tileType = chooseRandomTileType();
+                  const tileColor =
+                    tileType === "grass" ? "#BEDC74" : "#FFEEAD"; // Grass: green, Dirt: brown
                   return (
                     <div
                       className="flex flex-row"
@@ -363,17 +436,23 @@ export default function RoadAnimation() {
                         <rect
                           width={svgSize}
                           height={svgSize}
-                          style={{ stroke: "white", fill: "black" }}
+                          style={{ stroke: "white" }}
+                          fill={tileColor}
                         />
                       </svg>
-                      {index === 1 ? (
+                      {index === 0 ? (
                         <div
-                          className=" w-full  flex justify-end animate-jump-in animate-once animate-ease-out "
+                          className=" ml-10 flex  animate-jump-in animate-once animate-ease-out "
                           style={{
                             animationDelay: `${delay}ms`,
                           }}
                         >
-                          <TaskCard className=" pl-10  flex " />
+                          <TaskCard
+                            task_description={item["Description"]}
+                            task_id={item["Index"] + 1}
+                            task_duration={item["Days"]}
+                            task_Name={item["Task"]}
+                          />{" "}
                         </div>
                       ) : (
                         <></>
