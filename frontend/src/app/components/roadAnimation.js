@@ -212,13 +212,6 @@ export default function RoadAnimation() {
   return (
     <main className="pl-20 min-h-screen w-full">
       <div className="">
-        <button
-          onClick={handleMove}
-          className="mb-6 px-6 py-3 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-        >
-          Move Rabbit
-        </button>
-
         {/* Container for Rabbit Image */}
 
         {/* Rabbit Image */}
@@ -232,8 +225,8 @@ export default function RoadAnimation() {
               getPreviousDirection() === "right" ? "scaleX(1)" : "scaleX(-1)", // Flip horizontally when moving left
           }}
           animate={{
-            left: `${position.left + 20}px`,
-            top: `${position.top + 50}px`,
+            left: `${position.left + 80}px`,
+            top: `${position.top + 0}px`,
           }}
           transition={{
             type: "spring",

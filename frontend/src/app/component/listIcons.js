@@ -1,17 +1,30 @@
 "use client";
-import Link from 'next/link';
-import { useState } from 'react';
-import RenerateRoute from '../components/regenerateRoute'; // Ensure correct import
+import Link from "next/link";
+import { useState } from "react";
+import RenerateRoute from "../components/regenerateRoute"; // Ensure correct import
 
 const IconLinks = () => {
   const [isRegenerateOpen, setIsRegenerateOpen] = useState(false);
 
   const links = [
-    { href: '/awardboard', icon: '/images/other/award.png', alt: 'Award Board' },
-    { href: '/leadboard', icon: '/images/other/leadboard.png', alt: 'Lead Board' },
-    { href: '/', icon: '/images/other/regenerate.png', alt: 'Regenerate', isRegenerate: true },
-    { href: '/', icon: '/images/other/add.png', alt: 'Add' },
-    { href: '/', icon: '/images/other/Trash.png', alt: 'Trash' },
+    {
+      href: "/awardboard",
+      icon: "/images/other/award.png",
+      alt: "Award Board",
+    },
+    {
+      href: "/leadboard",
+      icon: "/images/other/leadboard.png",
+      alt: "Lead Board",
+    },
+    {
+      href: "/",
+      icon: "/images/other/regenerate.png",
+      alt: "Regenerate",
+      isRegenerate: true,
+    },
+    { href: "/", icon: "/images/other/add.png", alt: "Add" },
+    { href: "/", icon: "/images/other/Trash.png", alt: "Trash" },
   ];
 
   return (
@@ -42,7 +55,10 @@ const IconLinks = () => {
       ))}
 
       {/* Regenerate Popup */}
-      <RenerateRoute isOpen={isRegenerateOpen} onClose={() => setIsRegenerateOpen(false)} />
+      <RenerateRoute
+        isOpen={isRegenerateOpen}
+        onClose={() => setIsRegenerateOpen(false)}
+      />
     </div>
   );
 };

@@ -258,7 +258,7 @@ def update_roadmap():
         - **TimeSpan**: {time_span}
 
 
-        Please update the roadmap based on the feedback. Generate the updated roadmap in JSON format, ensuring the same structure and keep the exisitng task from and generate the future task based on the last :
+        Please update the roadmap based on the feedback. Generate the updated roadmap in JSON format, ensuring the same structure and but add or change the content appropriate to the feedback :
 
         - **Name**: Name of the user.
         - **Task**: A specific action or activity for the updated roadmap.
@@ -302,7 +302,7 @@ def update_roadmap():
         for task in updated_roadmap:
             task['Status'] = 'undone'
         current_task = updated_roadmap[0] if updated_roadmap else None
-        print("update_roadmap", update_roadmap)
+        print("update_roadmap", updated_roadmap)
         # Update the existing Firestore document with the new roadmap
         doc_ref.update({'roadmap': updated_roadmap})
         calculate_reward_points()
